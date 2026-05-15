@@ -2,7 +2,7 @@ import UIKit
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
-
+import RNBootSplash
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
   var window: UIWindow?
@@ -28,7 +28,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
       in: window,
       launchOptions: launchOptions
     )
-
+    if let rootViewController = window?.rootViewController {
+      RNBootSplash.initWithStoryboard("BootSplash", rootView: rootViewController.view)
+    }
     return true
   }
 }
