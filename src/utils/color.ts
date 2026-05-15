@@ -10,4 +10,5 @@ export const color = {
   green: '#31572c',
   lightGreen: '#588157',
   leafyGreen: '#06621aff',
+  blue: '#1877F2',
 };

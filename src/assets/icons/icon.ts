@@ -4,7 +4,8 @@ export const icon = {
   eyeShow: require('./eyeShow.png'),
   lock: require('./lock.png'),
   google: require('./google (1).png'),
-
+  phone: require('./icons8-phone-50.png'),
+  calendar: require('./icons8-calendar-50.png'),
   //actor
   activeUser: require('./user2.png'),
   inActiveUser: require('./user1.png'),

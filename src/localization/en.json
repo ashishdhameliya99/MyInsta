@@ -1,0 +1,20 @@
+{
+  "welcome": "Welcome to our app!",
+  "change_lang": "Select Language",
+  "enter_password": "Enter Password",
+  "user_login": "User Login",
+  "enter_email": "Enter Email",
+  "forgot_password": "Forgot Password ?",
+  "login": " Login",
+  "account": "don't have a account ?",
+  "accountAlready": "Already account ?",
+  "sign_up": " Sign Up",
+  "or": "Or continue with",
+  "user_register": "User Register",
+  "register": "Register",
+  "firstName": "Enter First Name",
+  "lastName": "Enter Last Name",
+  "mobile": "Enter Mobile Number",
+  "dob": "Select Date Of Birth",
+  "confirmPassword": "Enter Confirm Password"
+}

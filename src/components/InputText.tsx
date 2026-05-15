@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { color } from '../utils/color';
 import { icon } from '../assets/icons/icon';
-import { wp } from '../constants/ResponsiveUI';
+import { wp } from '../constants/responsiveUI';
 import { Props } from '../interface/type';
 
 const InputText = ({
@@ -20,6 +20,7 @@ const InputText = ({
   rightIconSource,
   contextmenu,
   autoCapitalize,
+  editable,
 }: Props) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
@@ -38,6 +39,7 @@ const InputText = ({
         style={styles.input}
         contextMenuHidden={contextmenu}
         autoCapitalize={autoCapitalize}
+        editable={editable}
       />
       {secureTextEntry ? (
         <TouchableOpacity onPress={toggleVisibility}>
