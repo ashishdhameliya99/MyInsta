@@ -11,14 +11,63 @@ import { routes } from '../../constants/routes';
 import { ParamListBase, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { styles } from './LoginStyle';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import auth, {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithCredential,
+} from '@react-native-firebase/auth';
+import { errorToast, successToast } from '../../components/Toast';
+import { ActivityIndicator } from 'react-native-paper';
 
 export default function Login() {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
-  const handleLogin = () => {};
-  const onGooglePress = () => {};
+  const handleLogin = async () => {
+    console.log('login user', email, password);
+
+    if (!email.trim() || !password.trim()) {
+      errorToast('Require field', 'please enter email and password');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await auth().signInWithEmailAndPassword(email.trim(), password);
+      successToast('Success', 'Welcome Back');
+      navigation.navigate(routes.home);
+    } catch (e: any) {
+      console.log('Login Error:', e);
+      errorToast('Login failed', 'require all field');
+    } finally {
+      setLoading(false);
+    }
+  };
+  GoogleSignin.configure({
+    webClientId:
+      '520055351712-thklhe3eqbk1oo9hmr0chnb18ehiuhfg.apps.googleusercontent.com',
+  });
+
+  async function onGooglePress() {
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+
+    const signInResult = await GoogleSignin.signIn();
+    let idToken = signInResult.data?.idToken;
+    if (!idToken) {
+      throw new Error('No ID token found');
+    }
+
+    const googleCredential = GoogleAuthProvider.credential(
+      signInResult.data?.idToken,
+    );
+    console.log('googleCredential', googleCredential);
+    return signInWithCredential(getAuth(), googleCredential);
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Image source={icon.image} style={styles.image} />
@@ -41,7 +90,11 @@ export default function Login() {
           leftIconSource={icon.lock}
         />
         <Text style={styles.forgotLink}>{t('forgot_password')}</Text>
-        <Button title={t('login')} onPress={handleLogin} />
+        {loading ? (
+          <ActivityIndicator size="large" color="#999" />
+        ) : (
+          <Button title={t('login')} onPress={handleLogin} />
+        )}
         <View style={styles.acLinkContainer}>
           <Text style={styles.dontHaveText}>{t('account')}</Text>
           <Text

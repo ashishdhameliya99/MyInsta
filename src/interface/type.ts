@@ -17,6 +17,7 @@ export interface Props {
   contextmenu?: boolean;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   editable?: boolean;
+  maxLength?: number;
 }
 type ToastType = 'success' | 'error' | 'info';
 
@@ -33,3 +34,15 @@ export interface CustomButtonProps extends TouchableOpacityProps {
   disabled?: boolean;
   onPress?: (event: GestureResponderEvent) => void;
 }
+
+export type BottomTabParamList = {
+  Home: undefined;
+  Search: undefined;
+  AddPost: undefined;
+  Notification: undefined;
+  Profile: undefined;
+};
+
+export type DrawerParamList = {
+  MainTabs: undefined;
+};

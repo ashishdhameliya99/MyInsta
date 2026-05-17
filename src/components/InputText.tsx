@@ -21,6 +21,7 @@ const InputText = ({
   contextmenu,
   autoCapitalize,
   editable,
+  maxLength,
 }: Props) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
@@ -40,6 +41,7 @@ const InputText = ({
         contextMenuHidden={contextmenu}
         autoCapitalize={autoCapitalize}
         editable={editable}
+        maxLength={maxLength}
       />
       {secureTextEntry ? (
         <TouchableOpacity onPress={toggleVisibility}>
