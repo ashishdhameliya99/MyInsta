@@ -44,5 +44,5 @@ export type BottomTabParamList = {
 };
 
 export type DrawerParamList = {
-  MainTabs: undefined;
+  mainTabs: undefined;
 };

@@ -27,6 +27,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
   const handleLogin = async () => {
+    if (loading) return;
     console.log('login user', email, password);
 
     if (!email.trim() || !password.trim()) {
@@ -39,7 +40,7 @@ export default function Login() {
     try {
       await auth().signInWithEmailAndPassword(email.trim(), password);
       successToast('Success', 'Welcome Back');
-      navigation.navigate(routes.home);
+      navigation.navigate(routes.mainApp);
     } catch (e: any) {
       console.log('Login Error:', e);
       errorToast('Login failed', 'require all field');

@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Image,
   Switch,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 
 import {
@@ -16,11 +18,20 @@ import {
 
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import LanguagePicker from '../components/LanguagePicker';
+import { rf } from '../constants/responsiveUI';
+import fontFamilies from '../assets/fonts/font';
+import { errorToast, successToast } from '../components/Toast';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { ParamListBase, useNavigation } from '@react-navigation/native';
+import { routes } from '../constants/routes';
 
 export default function CustomDrawer(props: DrawerContentComponentProps) {
   const [userData, setUserData] = useState<any>(null);
   const [isDark, setIsDark] = useState(false);
-
+  const [activeMenuIndex, setActiveMenuIndex] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
   useEffect(() => {
     getUserData();
   }, []);
@@ -43,7 +54,45 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
       }
     }
   };
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
 
+        {
+          text: 'OK',
+          style: 'destructive',
+
+          onPress: async () => {
+            setLoading(true);
+
+            try {
+              await auth().signOut();
+
+              successToast('success', 'User logout successfully');
+
+              // navigation.navigate(routes.login);
+            } catch (error) {
+              console.log('LOGOUT ERROR', error);
+
+              errorToast('error', 'User logout failed');
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+
+      {
+        cancelable: true,
+      },
+    );
+  };
   const menuItems = [
     {
       title: 'Home',
@@ -73,10 +122,9 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
       contentContainerStyle={styles.container}
     >
       <View style={styles.topContainer}>
-        <TouchableOpacity style={styles.languageBox}>
-          <Text style={styles.languageText}>English</Text>
-        </TouchableOpacity>
-
+        <View>
+          <LanguagePicker />
+        </View>
         <View style={styles.themeContainer}>
           <Switch value={isDark} onValueChange={setIsDark} />
         </View>
@@ -95,45 +143,43 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
         <Text style={styles.emailText}>{userData?.email}</Text>
       </View>
 
-      {/* <View style={styles.menuContainer}>
-        {menuItems.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.menuItem}
-            onPress={() => {
-              props.navigation.navigate('MainTabs');
-              props.navigation.closeDrawer();
-            }}
-          >
-            <Text style={styles.menuText}>{item.title}</Text>
-          </TouchableOpacity>
-        ))}
-      </View> */}
       <View style={styles.menuContainer}>
         {menuItems.map((item, index) => (
           <TouchableOpacity
             key={index}
-            style={styles.menuItem}
+            // Conditionally change background color if the item is active
+            style={[
+              styles.menuItem,
+              activeMenuIndex === index && styles.activeMenuItem,
+            ]}
             onPress={() => {
-              props.navigation.navigate('MainTabs', {
+              setActiveMenuIndex(index);
+
+              props.navigation.navigate('mainTabs', {
                 screen: item.screen,
               });
-
               props.navigation.closeDrawer();
             }}
           >
-            <Text style={styles.menuText}>{item.title}</Text>
+            {/* You can also conditionally change text color here */}
+            <Text
+              style={[
+                styles.menuText,
+                activeMenuIndex === index && styles.activeMenuText,
+              ]}
+            >
+              {item.title}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
-      <TouchableOpacity
-        style={styles.logoutButton}
-        onPress={async () => {
-          await auth().signOut();
-        }}
-      >
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
+      {loading ? (
+        <ActivityIndicator />
+      ) : (
+        <TouchableOpacity onPress={handleLogout} style={[styles.logoutButton]}>
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+      )}
     </DrawerContentScrollView>
   );
 }
@@ -142,7 +188,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
   },
 
   topContainer: {
@@ -193,30 +239,28 @@ const styles = StyleSheet.create({
   },
 
   menuContainer: {
-    marginTop: 50,
+    marginTop: 10,
   },
 
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#eceef2',
-    paddingVertical: 18,
+    paddingVertical: 10,
     borderRadius: 15,
     paddingHorizontal: 20,
-    marginBottom: 25,
+    marginBottom: 15,
   },
 
   menuText: {
     marginLeft: 15,
-    fontSize: 22,
-    fontWeight: '600',
-    color: '#000',
+    fontSize: rf(18),
+    fontFamily: fontFamilies.poppins.Regular,
   },
 
   logoutButton: {
     backgroundColor: 'red',
-    paddingVertical: 15,
-    paddingHorizontal: 25,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     borderRadius: 15,
     alignSelf: 'flex-end',
     marginBottom: 30,
@@ -224,8 +268,15 @@ const styles = StyleSheet.create({
   },
 
   logoutText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: rf(18),
+    fontFamily: fontFamilies.poppins.semiBold,
+    color: '#ffffff',
+  },
+  activeMenuItem: {
+    backgroundColor: '#E2E8F0',
+  },
+  activeMenuText: {
+    color: '#007AFF',
+    fontWeight: 'bold',
   },
 });

@@ -1,26 +1,37 @@
 import React from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import Home from '../screens/Stack/Home';
 import Search from '../screens/Stack/Search';
 import AddPost from '../screens/Stack/AddPost';
-import Notification from '../screens/Stack/Notification';
 import Profile from '../screens/Stack/Profile';
+import Notification from '../screens/Stack/Notification';
 
 import { BottomTabParamList } from '../interface/type';
-import { Image } from 'react-native';
-
 import { icon } from '../assets/icons/icon';
+import { DrawerActions } from '@react-navigation/native';
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 
 export default function BottomTabNavigator() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
+      screenOptions={({ route, navigation }) => ({
+        // headerShown: false,
+        tabBarShowLabel: false,
         tabBarActiveTintColor: '#000',
         tabBarInactiveTintColor: '#888',
+        headerTitleAlign: 'center', // Centers the title
+        // eslint-disable-next-line react/no-unstable-nested-components
+        headerLeft: () => (
+          <TouchableOpacity
+            style={styles.drawerButton}
+            onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+          >
+            <Text style={styles.menuText}>☰</Text>
+          </TouchableOpacity>
+        ),
         // eslint-disable-next-line react/no-unstable-nested-components
         tabBarIcon: ({ focused, color, size }) => {
           let iconSource;
@@ -40,10 +51,12 @@ export default function BottomTabNavigator() {
           }
 
           return (
-            <Image
-              source={iconSource}
-              style={{ width: size, height: size, tintColor: color }}
-            />
+            <View>
+              <Image
+                source={iconSource}
+                style={{ width: size, height: size, tintColor: color }}
+              />
+            </View>
           );
         },
       })}
@@ -56,3 +69,14 @@ export default function BottomTabNavigator() {
     </Tab.Navigator>
   );
 }
+const styles = StyleSheet.create({
+  drawerButton: {
+    marginLeft: 20,
+    marginTop: 20,
+  },
+
+  menuText: {
+    fontSize: 28,
+    color: '#000',
+  },
+});
