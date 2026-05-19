@@ -16,5 +16,17 @@
   "lastName": "Enter Last Name",
   "mobile": "Enter Mobile Number",
   "dob": "Select Date Of Birth",
-  "confirmPassword": "Enter Confirm Password"
+  "confirmPassword": "Enter Confirm Password",
+  "Home": "Home",
+  "Search": "Search",
+  "Notification": "Notification",
+  "Profile": "Profile",
+  "logout": "Logout",
+  "title": "Enter Title",
+  "description": "Enter Description",
+  "submit": "Submit",
+  "editProfile": "Edit Profile",
+  "selectImage": "Select Image",
+  "search": "Search User",
+  "comment": "Add Comment"
 }

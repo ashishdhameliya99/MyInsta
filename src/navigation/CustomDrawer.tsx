@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import {
   View,
@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Switch,
   Alert,
   ActivityIndicator,
 } from 'react-native';
@@ -19,24 +18,25 @@ import {
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import LanguagePicker from '../components/LanguagePicker';
-import { rf } from '../constants/responsiveUI';
+import { hp, rf } from '../constants/responsiveUI';
 import fontFamilies from '../assets/fonts/font';
 import { errorToast, successToast } from '../components/Toast';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ParamListBase, useNavigation } from '@react-navigation/native';
 import { routes } from '../constants/routes';
+import { useTranslation } from 'react-i18next';
+import { useAppTheme } from '../hooks/theme/themeContext';
+import { icon } from '../assets/icons/icon';
 
 export default function CustomDrawer(props: DrawerContentComponentProps) {
   const [userData, setUserData] = useState<any>(null);
-  const [isDark, setIsDark] = useState(false);
   const [activeMenuIndex, setActiveMenuIndex] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
-  useEffect(() => {
-    getUserData();
-  }, []);
+  const { dark, toggleTheme, theme } = useAppTheme();
 
-  const getUserData = async () => {
+  const getUserData = useCallback(async () => {
     const user = auth().currentUser;
 
     if (user) {
@@ -53,7 +53,11 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
         console.log(error);
       }
     }
-  };
+  }, []);
+  useEffect(() => {
+    getUserData();
+  }, [getUserData]);
+
   const handleLogout = () => {
     Alert.alert(
       'Logout',
@@ -76,7 +80,7 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
 
               successToast('success', 'User logout successfully');
 
-              // navigation.navigate(routes.login);
+              navigation.navigate(routes.login);
             } catch (error) {
               console.log('LOGOUT ERROR', error);
 
@@ -115,18 +119,26 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
       screen: 'Profile',
     },
   ];
-
+  console.log('userData', userData);
   return (
     <DrawerContentScrollView
       {...props}
-      contentContainerStyle={styles.container}
+      contentContainerStyle={[
+        styles.container,
+        { backgroundColor: theme.background },
+      ]}
     >
       <View style={styles.topContainer}>
         <View>
           <LanguagePicker />
         </View>
         <View style={styles.themeContainer}>
-          <Switch value={isDark} onValueChange={setIsDark} />
+          <TouchableOpacity onPress={toggleTheme}>
+            <Image
+              source={dark ? icon.lightMode : icon.darkMode}
+              style={styles.icon}
+            />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -140,44 +152,45 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
           style={styles.profileImage}
         />
 
-        <Text style={styles.emailText}>{userData?.email}</Text>
+        <Text style={[styles.emailText, { color: theme.text }]}>
+          {userData?.fname}
+        </Text>
       </View>
 
-      <View style={styles.menuContainer}>
-        {menuItems.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            // Conditionally change background color if the item is active
+      {menuItems.map((item, index) => (
+        <TouchableOpacity
+          key={index}
+          style={[
+            styles.menuItem,
+            activeMenuIndex === index && styles.activeMenuItem,
+          ]}
+          onPress={() => {
+            setActiveMenuIndex(index);
+
+            props.navigation.navigate('mainTabs', {
+              screen: item.screen,
+            });
+            props.navigation.closeDrawer();
+          }}
+        >
+          {/* You can also conditionally change text color here */}
+          <Text
             style={[
-              styles.menuItem,
-              activeMenuIndex === index && styles.activeMenuItem,
+              styles.menuText,
+              activeMenuIndex === index && styles.activeMenuText,
+              { color: theme.text },
             ]}
-            onPress={() => {
-              setActiveMenuIndex(index);
-
-              props.navigation.navigate('mainTabs', {
-                screen: item.screen,
-              });
-              props.navigation.closeDrawer();
-            }}
           >
-            {/* You can also conditionally change text color here */}
-            <Text
-              style={[
-                styles.menuText,
-                activeMenuIndex === index && styles.activeMenuText,
-              ]}
-            >
-              {item.title}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+            {t(item.title)}
+          </Text>
+        </TouchableOpacity>
+      ))}
+
       {loading ? (
         <ActivityIndicator />
       ) : (
         <TouchableOpacity onPress={handleLogout} style={[styles.logoutButton]}>
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={styles.logoutText}>{t('logout')}</Text>
         </TouchableOpacity>
       )}
     </DrawerContentScrollView>
@@ -187,7 +200,6 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     paddingHorizontal: 10,
   },
 
@@ -222,24 +234,21 @@ const styles = StyleSheet.create({
 
   profileSection: {
     alignItems: 'center',
-    marginTop: 60,
+    marginTop: 20,
   },
 
   profileImage: {
-    width: 180,
-    height: 180,
+    width: 100,
+    height: 100,
     borderRadius: 90,
   },
 
   emailText: {
     marginTop: 15,
-    fontSize: 22,
+    fontSize: rf(22),
+    fontFamily: fontFamilies.poppins.Regular,
     fontWeight: '700',
     color: '#000',
-  },
-
-  menuContainer: {
-    marginTop: 10,
   },
 
   menuItem: {
@@ -248,11 +257,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 15,
     paddingHorizontal: 20,
-    marginBottom: 15,
   },
 
   menuText: {
-    marginLeft: 15,
     fontSize: rf(18),
     fontFamily: fontFamilies.poppins.Regular,
   },
@@ -265,6 +272,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     marginBottom: 30,
     elevation: 10,
+    marginTop: hp(300),
   },
 
   logoutText: {
@@ -278,5 +286,9 @@ const styles = StyleSheet.create({
   activeMenuText: {
     color: '#007AFF',
     fontWeight: 'bold',
+  },
+  icon: {
+    height: 25,
+    width: 25,
   },
 });

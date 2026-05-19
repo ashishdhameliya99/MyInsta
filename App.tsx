@@ -3,14 +3,9 @@ import AuthStack from './src/navigation/AuthStack';
 import RNBootSplash from 'react-native-bootsplash';
 import Toast from 'react-native-toast-message';
 
-import firebase from '@react-native-firebase/app';
+import { ThemeProvider } from './src/hooks/theme/themeContext';
+import { MenuProvider } from 'react-native-popup-menu';
 function App() {
-  const checkFirebase = () => {
-    console.log('Firebase App:', firebase.app());
-  };
-
-  checkFirebase();
-
   useEffect(() => {
     const timer = setTimeout(() => {
       RNBootSplash.hide({ fade: true });
@@ -19,10 +14,12 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
   return (
-    <>
-      <AuthStack />
-      <Toast />
-    </>
+    <MenuProvider>
+      <ThemeProvider>
+        <AuthStack />
+        <Toast />
+      </ThemeProvider>
+    </MenuProvider>
   );
 }
 

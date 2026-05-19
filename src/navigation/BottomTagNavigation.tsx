@@ -11,25 +11,38 @@ import Notification from '../screens/Stack/Notification';
 import { BottomTabParamList } from '../interface/type';
 import { icon } from '../assets/icons/icon';
 import { DrawerActions } from '@react-navigation/native';
-
+import { useTranslation } from 'react-i18next';
+import { useAppTheme } from '../hooks/theme/themeContext';
+import { wp } from '../constants/responsiveUI';
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 
 export default function BottomTabNavigator() {
+  const { t } = useTranslation();
+  const { theme } = useAppTheme();
   return (
     <Tab.Navigator
       screenOptions={({ route, navigation }) => ({
-        // headerShown: false,
         tabBarShowLabel: false,
-        tabBarActiveTintColor: '#000',
-        tabBarInactiveTintColor: '#888',
-        headerTitleAlign: 'center', // Centers the title
+        tabBarActiveTintColor: theme.text,
+        tabBarInactiveTintColor: theme.text,
+        headerTitleAlign: 'center',
+        headerTitleStyle: {
+          marginTop: wp(20),
+        },
+        headerStyle: {
+          backgroundColor: theme.background,
+        },
+        headerTintColor: theme.text,
+        tabBarStyle: {
+          backgroundColor: theme.background,
+        },
         // eslint-disable-next-line react/no-unstable-nested-components
         headerLeft: () => (
           <TouchableOpacity
             style={styles.drawerButton}
             onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
           >
-            <Text style={styles.menuText}>☰</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>☰</Text>
           </TouchableOpacity>
         ),
         // eslint-disable-next-line react/no-unstable-nested-components
@@ -61,11 +74,27 @@ export default function BottomTabNavigator() {
         },
       })}
     >
-      <Tab.Screen name="Home" component={Home} />
-      <Tab.Screen name="Search" component={Search} />
-      <Tab.Screen name="AddPost" component={AddPost} />
-      <Tab.Screen name="Notification" component={Notification} />
-      <Tab.Screen name="Profile" component={Profile} />
+      <Tab.Screen name="Home" component={Home} options={{ title: t('Home') }} />
+      <Tab.Screen
+        name="Search"
+        component={Search}
+        options={{ title: t('Search') }}
+      />
+      <Tab.Screen
+        name="AddPost"
+        component={AddPost}
+        options={{ title: t('Add Post') }}
+      />
+      <Tab.Screen
+        name="Notification"
+        component={Notification}
+        options={{ title: t('Notification') }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={Profile}
+        options={{ title: t('Profile') }}
+      />
     </Tab.Navigator>
   );
 }

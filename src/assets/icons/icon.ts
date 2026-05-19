@@ -3,24 +3,35 @@ export const icon = {
   eyeHide: require('./eyeHide.png'),
   eyeShow: require('./eyeShow.png'),
   lock: require('./lock.png'),
-  google: require('./google (1).png'),
-  phone: require('./icons8-phone-50.png'),
-  calendar: require('./icons8-calendar-50.png'),
+  google: require('./google.png'),
+  phone: require('./mobile.png'),
+  calendar: require('./calander.png'),
+  title: require('./title.png'),
+  desc: require('./desc.png'),
   //actor
   activeUser: require('./user2.png'),
   inActiveUser: require('./user1.png'),
   //notification
-  activeNotification: require('./bell1.png'),
-  inActiveNotification: require('./bell.png'),
+  activeNotification: require('./activeNotification.png'),
+  inActiveNotification: require('./inActiveNotification.png'),
   //post
-  activePost: require('./addition.png'),
-  inActivePost: require('./instagram-post.png'),
+  activePost: require('./activeAdd.png'),
+  inActivePost: require('./inActiveAdd.png'),
   //search
-  activeSearch: require('./loupe.png'),
-  inActiveSearch: require('./icons8-search-50.png'),
+  activeSearch: require('./activeSearch.png'),
+  inActiveSearch: require('./inActiveSearch.png'),
   //home
-  activeHome: require('./icons8-home-48.png'),
-  inActiveHome: require('./home3.png'),
+  activeHome: require('./activeHome.png'),
+  inActiveHome: require('./inActiveHome.png'),
   //instagram
   image: require('./instagram-new.png'),
+  //darkMode
+  darkMode: require('./moon.png'),
+  //lightMode
+  lightMode: require('./moon1.png'),
+  //like
+  activeLike: require('./selected.png'),
+  inActiveLike: require('./unSelected.png'),
+  //comment
+  comment: require('./comment.png'),
 };
