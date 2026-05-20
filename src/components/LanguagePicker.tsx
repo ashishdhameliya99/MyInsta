@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '../hooks/theme/themeContext';
+import { hp, wp } from '../constants/responsiveUI';
 
 const data = [
   { label: 'English', value: 'en' },
@@ -34,7 +35,6 @@ const LanguagePicker = () => {
         onChange={item => changeLanguage(item.value)}
         placeholderStyle={{ color: theme.text }}
         selectedTextStyle={{ color: theme.text }}
-        // itemTextStyle={{ color: theme.text }}
       />
     </View>
   );
@@ -45,8 +45,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   dropdown: {
-    height: 50,
-    width: 100,
+    height: hp(50),
+    width: wp(100),
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 8,

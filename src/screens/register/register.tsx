@@ -22,6 +22,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   GestureHandlerRootView,
@@ -46,13 +47,11 @@ export default function Register() {
   const { t } = useTranslation();
   const route = useRoute<RouteProp<any>>();
   const isEdit = route?.params?.isEdit || false;
-  console.log('isEdit', isEdit);
   const editUserData = route?.params?.userData;
-  console.log('editUserData', editUserData);
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
 
   const [firstName, setFirstName] = useState(editUserData?.fname || '');
-  const [lastName, setLstName] = useState(editUserData?.lname || '');
+  const [lastName, setLastName] = useState(editUserData?.lname || '');
   const [mobile, setMobile] = useState(editUserData?.mobile || '');
   const [gender, setGender] = useState(editUserData?.gender || '');
   const [email, setEmail] = useState(editUserData?.email || '');
@@ -61,8 +60,18 @@ export default function Register() {
   const [dob, setDob] = useState(editUserData?.dob?.toDate?.() || new Date());
   const [openDate, setOpenDate] = useState(false);
   const [loading, setLoading] = useState(false);
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString();
+  };
+
   const handleSubmit = async () => {
-    if (!firstName || !lastName || !mobile || !gender || !email) {
+    if (
+      !firstName.trim() ||
+      !lastName.trim() ||
+      !mobile.trim() ||
+      !gender.trim() ||
+      !email.trim()
+    ) {
       errorToast('Invalid', 'Please fill all fields');
 
       return;
@@ -86,27 +95,49 @@ export default function Register() {
 
           {
             text: 'OK',
+
             onPress: async () => {
               try {
                 setLoading(true);
+
                 const user = auth().currentUser;
+
                 if (!user) {
                   return;
                 }
 
                 await firestore().collection('usersData').doc(user.uid).update({
-                  fname: firstName,
-                  lname: lastName,
-                  mobile: mobile,
-                  gender: gender,
+                  fname: firstName.trim(),
+                  lname: lastName.trim(),
+                  mobile: mobile.trim(),
+                  gender: gender.trim(),
                   dob: dob,
-                  email: email,
+                  email: email.trim(),
+                  updatedAt: firestore.FieldValue.serverTimestamp(),
                 });
 
+                const postsSnapshot = await firestore()
+                  .collection('usersData')
+                  .doc(user.uid)
+                  .collection('posts')
+                  .get();
+
+                const batch = firestore().batch();
+
+                postsSnapshot.docs.forEach(document => {
+                  batch.update(document.ref, {
+                    userName: firstName.trim(),
+                  });
+                });
+
+                await batch.commit();
+
                 successToast('Success', 'Profile updated successfully');
+
                 navigation.goBack();
               } catch (error) {
-                console.log(error);
+                console.log('Update Error : ', error);
+
                 errorToast('Error', 'Update failed');
               } finally {
                 setLoading(false);
@@ -118,37 +149,42 @@ export default function Register() {
 
       return;
     }
-
     if (!password || !confirmPassword) {
       errorToast('Invalid', 'Please enter password');
+
       return;
     }
 
     if (password !== confirmPassword) {
       errorToast('Error', 'Passwords do not match');
+
       return;
     }
 
     if (password.length < 6) {
       errorToast('Weak Password', 'Password must be at least 6 characters');
+
       return;
     }
-
     try {
       setLoading(true);
+
       const userCredential = await auth().createUserWithEmailAndPassword(
-        email,
+        email.trim(),
         password,
       );
 
       const userId = userCredential.user.uid;
+
       await firestore().collection('usersData').doc(userId).set({
-        fname: firstName,
-        lname: lastName,
-        mobile: mobile,
-        gender: gender,
+        uid: userId,
+        fname: firstName.trim(),
+        lname: lastName.trim(),
+        userName: firstName.trim(),
+        mobile: mobile.trim(),
+        gender: gender.trim(),
         dob: dob,
-        email: email,
+        email: email.trim(),
         followers: [],
         following: [],
         requestCome: [],
@@ -162,6 +198,14 @@ export default function Register() {
       navigation.navigate(routes.login);
     } catch (error: any) {
       console.log('Signup Error:', error);
+
+      if (error.code === 'auth/email-already-in-use') {
+        errorToast('Email Exists', 'This email is already registered');
+      } else if (error.code === 'auth/invalid-email') {
+        errorToast('Invalid Email', 'Please enter valid email');
+      } else {
+        errorToast('Signup Failed', error.message || 'Something went wrong');
+      }
     } finally {
       setLoading(false);
     }
@@ -177,11 +221,40 @@ export default function Register() {
 
       const signInResult = await GoogleSignin.signIn();
       const idToken = signInResult.data?.idToken;
+
       if (!idToken) {
         throw new Error('No ID token found');
       }
+
       const googleCredential = GoogleAuthProvider.credential(idToken);
-      await signInWithCredential(getAuth(), googleCredential);
+      const userCredential = await signInWithCredential(
+        getAuth(),
+        googleCredential,
+      );
+
+      const user = userCredential.user;
+      const userRef = firestore().collection('usersData').doc(user.uid);
+      const userDoc = await userRef.get();
+
+      if (!userDoc.exists) {
+        await userRef.set({
+          uid: user.uid,
+          fname: user.displayName || '',
+          lname: '',
+          userName: user.displayName || '',
+          mobile: '',
+          gender: '',
+          dob: new Date(),
+          email: user.email || '',
+          followers: [],
+          following: [],
+          requestCome: [],
+          requestSend: [],
+          profilePicture: user.photoURL || '',
+          createdAt: firestore.FieldValue.serverTimestamp(),
+        });
+      }
+
       successToast('Success', 'Google login successful');
     } catch (error: any) {
       console.log('Google Login Error:', error);
@@ -193,10 +266,6 @@ export default function Register() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString();
   };
 
   return (
@@ -226,7 +295,7 @@ export default function Register() {
           <InputText
             placeholder={t('lastName')}
             value={lastName}
-            onChange={setLstName}
+            onChange={setLastName}
             leftIconSource={icon.inActiveUser}
           />
 
@@ -250,52 +319,23 @@ export default function Register() {
             onValueChange={value => setGender(value)}
             value={gender}
           >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginTop: 10,
-                marginBottom: 10,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginRight: 20,
-                }}
-              >
+            <View style={styles.radioContainer}>
+              <View style={styles.radioMale}>
                 <RadioButton value="Male" />
-
                 <Text>Male</Text>
               </View>
 
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginRight: 20,
-                }}
-              >
+              <View style={styles.radioMale}>
                 <RadioButton value="Female" />
-
                 <Text>Female</Text>
               </View>
 
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }}
-              >
+              <View style={styles.radioMale}>
                 <RadioButton value="Other" />
-
                 <Text>Other</Text>
               </View>
             </View>
           </RadioButton.Group>
-
-          {/* DOB */}
 
           <Text style={styles.labelText}>{t('dob')}</Text>
 
@@ -320,7 +360,6 @@ export default function Register() {
             value={email}
             onChange={setEmail}
             leftIconSource={icon.email}
-            contextmenu={true}
           />
 
           {!isEdit && (
@@ -331,9 +370,8 @@ export default function Register() {
                 placeholder={t('enter_password')}
                 value={password}
                 onChange={setPassword}
-                secureTextEntry={true}
+                secureTextEntry
                 leftIconSource={icon.lock}
-                contextmenu={true}
               />
 
               <Text style={styles.labelText}>{t('confirmPassword')}</Text>
@@ -342,9 +380,8 @@ export default function Register() {
                 placeholder={t('confirmPassword')}
                 value={confirmPassword}
                 onChange={setConfirmPassword}
-                secureTextEntry={true}
+                secureTextEntry
                 leftIconSource={icon.lock}
-                contextmenu={true}
               />
             </>
           )}
@@ -357,6 +394,7 @@ export default function Register() {
               onPress={handleSubmit}
             />
           )}
+
           {!isEdit && (
             <>
               <View style={styles.acLinkContainer}>
@@ -388,6 +426,7 @@ export default function Register() {
               </TouchableOpacity>
             </>
           )}
+
           <DatePicker
             modal
             mode="date"

@@ -1,7 +1,7 @@
 export const routes = {
   login: 'login',
   register: 'register',
-  home: 'home',
+  home: 'Home',
   mainApp: 'mainApp',
   //stack
   notification: 'notification',

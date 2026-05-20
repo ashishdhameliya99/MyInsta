@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import {
   Alert,
   Image,
@@ -22,77 +22,117 @@ import { icon } from '../assets/icons/icon';
 import { wp } from '../constants/responsiveUI';
 import { useTranslation } from 'react-i18next';
 import { successToast } from './Toast';
-
+import { useUserData } from '../hooks/userData/useUserData';
 interface Props {
   item: any;
+  fname: string;
 }
 
-export default function PostCard({ item }: Props) {
+function PostCard({ item, fname }: Props) {
   const { theme } = useAppTheme();
-  const currentUser = auth().currentUser;
   const { t } = useTranslation();
+  const currentUser = auth().currentUser;
   const [commentText, setCommentText] = useState('');
+  const userData = useUserData();
+  const [loadingLike, setLoadingLike] = useState(false);
+  const [loadingComment, setLoadingComment] = useState(false);
 
-  const comments = item?.comments || [];
-  const likes = item?.likes || [];
-  console.log('likes', likes);
-  const isLiked =
-    currentUser && Array.isArray(likes)
-      ? likes.includes(currentUser.uid)
-      : false;
-  console.log('isLiked', isLiked);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+
+  const [commentsState, setCommentsState] = useState<any[]>(
+    Array.isArray(item?.comments) ? item.comments : [],
+  );
 
   const handleLike = async () => {
-    const postRef = firestore()
-      .collection('usersData')
-      .doc(currentUser?.uid)
-      .collection('posts')
-      .doc(item.id);
-
-    try {
-      await postRef.update({
-        likes: isLiked
-          ? firestore.FieldValue.arrayRemove(currentUser?.uid)
-          : firestore.FieldValue.arrayUnion(currentUser?.uid),
-      });
-
-      console.log('Like status updated successfully');
-    } catch (error) {
-      console.log('Like Error: ', error);
-    }
-  };
-
-  const handleComment = async () => {
-    if (!commentText.trim() || !currentUser || !item?.id) {
+    if (!currentUser || !item?.uid || !item?.id || loadingLike) {
       return;
     }
 
     try {
+      setLoadingLike(true);
+      await firestore()
+        .collection('usersData')
+        .doc(item.uid)
+        .collection('posts')
+        .doc(item.id)
+        .update({
+          likes: isLiked
+            ? firestore.FieldValue.arrayRemove(currentUser.uid)
+            : firestore.FieldValue.arrayUnion(currentUser.uid),
+        });
+    } catch (error) {
+      console.error('Like Error : ', error);
+    } finally {
+      setLoadingLike(false);
+    }
+  };
+  useEffect(() => {
+    if (!item?.uid || !item?.id || !currentUser) return;
+    const unsubscribe = firestore()
+      .collection('usersData')
+      .doc(item.uid)
+      .collection('posts')
+      .doc(item.id)
+      .onSnapshot(documentSnapshot => {
+        if (documentSnapshot.exists()) {
+          const data = documentSnapshot.data();
+          const likes = data?.likes || [];
+
+          setIsLiked(likes.includes(currentUser.uid));
+          setLikesCount(likes.length);
+        }
+      });
+
+    return () => unsubscribe();
+  }, [item?.uid, item?.id, currentUser]);
+
+  const handleComment = async () => {
+    if (
+      !commentText.trim() ||
+      !currentUser ||
+      !item?.uid ||
+      !item?.id ||
+      loadingComment
+    ) {
+      return;
+    }
+
+    try {
+      setLoadingComment(true);
+
       const newComment = {
-        comment: commentText.trim(),
-        userId: currentUser.uid,
+        id: Date.now().toString(),
+        commenterId: currentUser.uid,
+        commenterName: userData?.fname || 'User',
+        text: commentText.trim(),
         createdAt: new Date().toISOString(),
       };
       console.log('newComment', newComment);
-      const data = await firestore()
+      setCommentsState(prev => [
+        ...prev,
+        {
+          ...newComment,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+
+      setCommentText('');
+
+      await firestore()
         .collection('usersData')
-        .doc(currentUser.uid)
+        .doc(item.uid)
         .collection('posts')
         .doc(item.id)
-        .set(
-          {
-            comments: firestore.FieldValue.arrayUnion({
-              commenterId: currentUser.uid,
-              text: commentText,
-              createdAt: new Date().toISOString(),
-            }),
-          },
-          { merge: true },
-        );
-      console.log('data=================', data);
-      setCommentText('');
+        .update({
+          comments: firestore.FieldValue.arrayUnion(newComment),
+        });
     } catch (error) {
-      console.log('Comment Error : ', error);
+      console.error('Comment Error : ', error);
+
+      setCommentsState(Array.isArray(item?.comments) ? item.comments : []);
+    } finally {
+      setLoadingComment(false);
     }
   };
 
@@ -107,9 +147,14 @@ export default function PostCard({ item }: Props) {
         style: 'destructive',
         onPress: async () => {
           try {
-            await firestore().collection('posts').doc(item.id).delete();
+            await firestore()
+              .collection('usersData')
+              .doc(item.uid)
+              .collection('posts')
+              .doc(item.id)
+              .delete();
 
-            successToast('Success', 'Post delete');
+            successToast('Success', 'Post deleted successfully');
           } catch (error) {
             console.log('Delete Error : ', error);
           }
@@ -146,7 +191,7 @@ export default function PostCard({ item }: Props) {
               },
             ]}
           >
-            {item?.userName || 'Unknown User'}
+            {fname || 'Unknown User'}
           </Text>
         </View>
 
@@ -180,6 +225,7 @@ export default function PostCard({ item }: Props) {
           </Menu>
         )}
       </View>
+
       <Image
         source={{
           uri: item?.imageURL,
@@ -188,11 +234,17 @@ export default function PostCard({ item }: Props) {
       />
 
       <View style={styles.actionContainer}>
-        <TouchableOpacity style={styles.actionBtn} onPress={handleLike}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          activeOpacity={0.7}
+          onPress={handleLike}
+          disabled={loadingLike}
+        >
           <Image
             source={isLiked ? icon.activeLike : icon.inActiveLike}
             style={[
               styles.actionIcon,
+              // eslint-disable-next-line react-native/no-inline-styles
               {
                 tintColor: isLiked ? 'red' : theme.text,
               },
@@ -207,7 +259,7 @@ export default function PostCard({ item }: Props) {
               },
             ]}
           >
-            {likes.length}
+            {likesCount}
           </Text>
         </TouchableOpacity>
 
@@ -230,7 +282,7 @@ export default function PostCard({ item }: Props) {
               },
             ]}
           >
-            {comments.length}
+            {commentsState.length}
           </Text>
         </View>
       </View>
@@ -245,7 +297,6 @@ export default function PostCard({ item }: Props) {
       >
         {item?.title}
       </Text>
-
       <Text
         style={[
           styles.description,
@@ -257,13 +308,35 @@ export default function PostCard({ item }: Props) {
         {item?.description}
       </Text>
 
-      {Array.isArray(comments) &&
-        comments.map((commentItem: any, index: number) => (
-          <Text key={index} style={[styles.commentText, { color: theme.text }]}>
-            <Text>{commentItem?.text}</Text>
-          </Text>
-        ))}
+      {Array.isArray(commentsState) &&
+        commentsState.map((commentItem: any, index: number) => (
+          <View
+            key={commentItem?.id || index.toString()}
+            style={styles.commentWrapper}
+          >
+            <Text
+              style={[
+                styles.commentUser,
+                {
+                  color: theme.text,
+                },
+              ]}
+            >
+              {commentItem?.commenterName || 'User'}
+            </Text>
 
+            <Text
+              style={[
+                styles.commentText,
+                {
+                  color: theme.text,
+                },
+              ]}
+            >
+              {commentItem?.text}
+            </Text>
+          </View>
+        ))}
       <View style={styles.commentContainer}>
         <TextInput
           placeholder={t('comment')}
@@ -278,23 +351,29 @@ export default function PostCard({ item }: Props) {
           ]}
         />
 
-        <TouchableOpacity onPress={handleComment}>
-          <Text style={styles.postBtn}>Post</Text>
+        <TouchableOpacity onPress={handleComment} disabled={loadingComment}>
+          <Text style={styles.postBtn}>
+            {loadingComment ? 'Posting...' : 'Post'}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
 
+export default memo(PostCard);
+
 const styles = StyleSheet.create({
   card: {
     marginBottom: 25,
     paddingBottom: 20,
   },
+
   icon: {
     height: wp(20),
     width: wp(20),
   },
+
   userContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -374,8 +453,18 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.poppins.semiBold,
   },
 
-  commentText: {
+  commentWrapper: {
     paddingHorizontal: 15,
+    marginTop: 8,
+  },
+
+  commentUser: {
+    fontSize: 13,
+    fontFamily: fontFamilies.poppins.bold,
+  },
+
+  commentText: {
+    fontSize: 14,
     fontFamily: fontFamilies.poppins.Regular,
   },
 
@@ -397,6 +486,7 @@ const styles = StyleSheet.create({
 
   postBtn: {
     marginLeft: 15,
-    color: '#0095f6',
+    color: '#0095F6',
+    fontFamily: fontFamilies.poppins.semiBold,
   },
 });

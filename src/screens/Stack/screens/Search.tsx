@@ -1,19 +1,12 @@
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import InputText from '../../components/InputText';
-import { icon } from '../../assets/icons/icon';
-import { useAppTheme } from '../../hooks/theme/themeContext';
+import InputText from '../../../components/InputText';
+import { icon } from '../../../assets/icons/icon';
+import { useAppTheme } from '../../../hooks/theme/themeContext';
 import { useTranslation } from 'react-i18next';
-import { wp } from '../../constants/responsiveUI';
 import firestore from '@react-native-firebase/firestore';
-import UserCard from '../../components/UserCard';
-import fontFamilies from '../../assets/fonts/font';
+import UserCard from '../../../components/UserCard';
+import { styles } from '../styles/SearchStyle';
 
 const EmptyListMessage = () => (
   <View style={styles.emptyContainer}>
@@ -26,7 +19,7 @@ export default function Search() {
   const [loading, setLoading] = useState(true);
   const { theme } = useAppTheme();
   const { t } = useTranslation();
-
+  console.log('users==+++', users);
   useEffect(() => {
     const fetchAllUsers = async () => {
       try {
@@ -79,31 +72,3 @@ export default function Search() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: wp(20),
-  },
-  listContainer: {
-    gap: 20,
-  },
-  emptyText: {
-    textAlign: 'center',
-    marginTop: 20,
-    fontSize: 16,
-    color: '#999',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 100,
-    paddingHorizontal: 40,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontFamily: fontFamilies.poppins.bold,
-    marginBottom: 8,
-  },
-});

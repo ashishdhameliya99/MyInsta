@@ -46,3 +46,8 @@ export type BottomTabParamList = {
 export type DrawerParamList = {
   mainTabs: undefined;
 };
+
+export type Post = {
+  id: string;
+  [key: string]: any;
+};

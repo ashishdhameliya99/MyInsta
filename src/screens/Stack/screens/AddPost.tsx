@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -12,17 +11,17 @@ import {
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import { useTranslation } from 'react-i18next';
-import { icon } from '../../assets/icons/icon';
-import { useAppTheme } from '../../hooks/theme/themeContext';
-import InputText from '../../components/InputText';
-import Button from '../../components/Button';
-import fontFamilies from '../../assets/fonts/font';
-import { hp } from '../../constants/responsiveUI';
-import { imageList } from '../../helper/global';
-import { errorToast, successToast } from '../../components/Toast';
+import { icon } from '../../../assets/icons/icon';
+import { useAppTheme } from '../../../hooks/theme/themeContext';
+import InputText from '../../../components/InputText';
+import Button from '../../../components/Button';
+import { imageList } from '../../../helper/global';
+import { errorToast, successToast } from '../../../components/Toast';
 import { ParamListBase, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { routes } from '../../constants/routes';
+import { routes } from '../../../constants/routes';
+import { styles } from '../styles/AddPostStyle';
+import { useUserData } from '../../../hooks/userData/useUserData';
 
 export default function AddPost() {
   const { theme } = useAppTheme();
@@ -30,8 +29,10 @@ export default function AddPost() {
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
   const [loading, setLoading] = useState(false);
+  const userData = useUserData();
   const [selectedImage, setSelectedImage] = useState(imageList[0]);
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
+
   const handleSubmit = async () => {
     if (!title.trim() || !desc.trim()) {
       errorToast('Validation', 'Please fill all fields');
@@ -40,15 +41,13 @@ export default function AddPost() {
 
     try {
       setLoading(true);
-
       const user = auth().currentUser;
-
       if (!user) {
         errorToast('Error', 'User not found');
         return;
       }
 
-      const data = await firestore()
+      await firestore()
         .collection('usersData')
         .doc(user.uid)
         .collection('posts')
@@ -60,10 +59,15 @@ export default function AddPost() {
           likes: [],
           comments: [],
           createdAt: firestore.FieldValue.serverTimestamp(),
+          postCreated: {
+            fname: userData?.fname.trim(),
+            lname: userData?.lname.trim(),
+            email: userData?.email.trim(),
+          },
         });
-      console.log('data', data);
+
       successToast('Success', 'Post added successfully');
-      navigation.navigate(routes.homes);
+      navigation.navigate(routes.home);
 
       setTitle('');
       setDesc('');
@@ -169,36 +173,3 @@ export default function AddPost() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 20,
-    paddingTop: hp(5),
-  },
-  icon: {
-    width: 100,
-    height: 100,
-    alignSelf: 'center',
-    resizeMode: 'contain',
-  },
-  labelText: {
-    fontSize: 16,
-    marginTop: 15,
-    marginBottom: 10,
-    fontFamily: fontFamilies.poppins.medium,
-  },
-  imageWrapper: {
-    borderWidth: 3,
-    borderRadius: 15,
-    marginRight: 15,
-    padding: 3,
-  },
-  postImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 12,
-  },
-  loader: {
-    marginTop: 20,
-  },
-});

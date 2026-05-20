@@ -22,7 +22,6 @@ target 'MyInsta' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-  # ADD THIS
   pod 'FirebaseCore', :modular_headers => true
   pod 'GoogleUtilities', :modular_headers => true
 
@@ -35,7 +34,14 @@ target 'MyInsta' do
 
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
+        # Fix for missing modular headers across mixed Swift/Obj-C pods
         config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+        
+        # Specific fix for React Native Firebase + New Arch + Static Frameworks
+        if target.name == 'RNFBFirestore' || target.name == 'RNFBApp'
+          config.build_settings['HEADER_SEARCH_PATHS'] ||= '$(inherited) '
+          config.build_settings['HEADER_SEARCH_PATHS'] << '"$(PODS_ROOT)/Headers/Public/React-Core"'
+        end
       end
     end
   end

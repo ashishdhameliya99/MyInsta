@@ -2,11 +2,11 @@ import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import Home from '../screens/Stack/Home';
-import Search from '../screens/Stack/Search';
-import AddPost from '../screens/Stack/AddPost';
-import Profile from '../screens/Stack/Profile';
-import Notification from '../screens/Stack/Notification';
+import Home from '../screens/Stack/screens/Home';
+import Search from '../screens/Stack/screens/Search';
+import AddPost from '../screens/Stack/screens/AddPost';
+import Profile from '../screens/Stack/screens/Profile';
+import Notification from '../screens/Stack/screens/Notification';
 
 import { BottomTabParamList } from '../interface/type';
 import { icon } from '../assets/icons/icon';

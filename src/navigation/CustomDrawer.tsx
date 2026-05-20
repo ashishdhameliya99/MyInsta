@@ -119,7 +119,6 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
       screen: 'Profile',
     },
   ];
-  console.log('userData', userData);
   return (
     <DrawerContentScrollView
       {...props}
@@ -173,7 +172,6 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
             props.navigation.closeDrawer();
           }}
         >
-          {/* You can also conditionally change text color here */}
           <Text
             style={[
               styles.menuText,

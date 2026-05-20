@@ -74,4 +74,15 @@ export const styles = StyleSheet.create({
     height: wp(20),
     width: wp(20),
   },
+  radioContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  radioMale: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 20,
+  },
 });
