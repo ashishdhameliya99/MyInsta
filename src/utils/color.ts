@@ -16,9 +16,11 @@ export const color = {
 export const lightTheme = {
   background: '#ffffff',
   text: '#000000',
+  modal: '#FAF9F6',
 };
 
 export const darkTheme = {
   background: '#000000',
   text: '#ffffff',
+  modal: '#ffffff',
 };

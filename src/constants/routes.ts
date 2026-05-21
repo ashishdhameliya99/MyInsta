@@ -7,6 +7,5 @@ export const routes = {
   notification: 'notification',
   addPost: 'addPost',
   search: 'search',
-  profile: 'profile',
-  homes: 'homes',
+  profile: 'Profile',
 };

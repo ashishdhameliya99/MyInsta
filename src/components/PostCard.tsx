@@ -16,41 +16,82 @@ import {
   MenuOptions,
   MenuTrigger,
 } from 'react-native-popup-menu';
+
+import {
+  CommonActions,
+  ParamListBase,
+  useNavigation,
+} from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
 import { useAppTheme } from '../hooks/theme/themeContext';
 import fontFamilies from '../assets/fonts/font';
 import { icon } from '../assets/icons/icon';
 import { wp } from '../constants/responsiveUI';
 import { useTranslation } from 'react-i18next';
-import { successToast } from './Toast';
+import { successToast, errorToast } from './Toast';
 import { useUserData } from '../hooks/userData/useUserData';
+
 interface Props {
   item: any;
-  fname: string;
 }
 
-function PostCard({ item, fname }: Props) {
+function PostCard({ item }: Props) {
   const { theme } = useAppTheme();
   const { t } = useTranslation();
-  const currentUser = auth().currentUser;
-  const [commentText, setCommentText] = useState('');
   const userData = useUserData();
+  const currentUser = auth().currentUser;
+  const [isLiked, setIsLiked] = useState(false);
+  const [commentText, setCommentText] = useState('');
   const [loadingLike, setLoadingLike] = useState(false);
   const [loadingComment, setLoadingComment] = useState(false);
-
-  const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(0);
-
+  const [likesCount, setLikesCount] = useState(
+    Array.isArray(item?.likes) ? item.likes.length : 0,
+  );
+  const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
+  console.log('userData', userData);
   const [commentsState, setCommentsState] = useState<any[]>(
     Array.isArray(item?.comments) ? item.comments : [],
   );
 
-  const handleLike = async () => {
-    if (!currentUser || !item?.uid || !item?.id || loadingLike) {
+  const handleOpenProfile = () => {
+    navigation.dispatch(CommonActions.navigate('userProfile', { post: item }));
+    console.log('item.id', item);
+  };
+
+  useEffect(() => {
+    if (!item?.uid || !item?.id || !currentUser) {
       return;
     }
 
+    const unsubscribe = firestore()
+      .collection('usersData')
+      .doc(item.uid)
+      .collection('posts')
+      .doc(item.id)
+      .onSnapshot(documentSnapshot => {
+        if (documentSnapshot.exists()) {
+          const data = documentSnapshot.data();
+          const likes = Array.isArray(data?.likes) ? data.likes : [];
+          const comments = Array.isArray(data?.comments) ? data.comments : [];
+
+          setIsLiked(likes.includes(currentUser.uid));
+          setLikesCount(likes.length);
+          setCommentsState(comments);
+        }
+      });
+
+    return () => unsubscribe();
+  }, [currentUser, item?.id, item?.uid]);
+
+  const handleLike = async () => {
     try {
+      if (!currentUser || !item?.uid || !item?.id || loadingLike) {
+        return;
+      }
+
       setLoadingLike(true);
+
       await firestore()
         .collection('usersData')
         .doc(item.uid)
@@ -62,45 +103,20 @@ function PostCard({ item, fname }: Props) {
             : firestore.FieldValue.arrayUnion(currentUser.uid),
         });
     } catch (error) {
-      console.error('Like Error : ', error);
+      console.log('Like Error : ', error);
+      errorToast('Error', 'Failed to like post');
     } finally {
       setLoadingLike(false);
     }
   };
-  useEffect(() => {
-    if (!item?.uid || !item?.id || !currentUser) return;
-    const unsubscribe = firestore()
-      .collection('usersData')
-      .doc(item.uid)
-      .collection('posts')
-      .doc(item.id)
-      .onSnapshot(documentSnapshot => {
-        if (documentSnapshot.exists()) {
-          const data = documentSnapshot.data();
-          const likes = data?.likes || [];
-
-          setIsLiked(likes.includes(currentUser.uid));
-          setLikesCount(likes.length);
-        }
-      });
-
-    return () => unsubscribe();
-  }, [item?.uid, item?.id, currentUser]);
 
   const handleComment = async () => {
-    if (
-      !commentText.trim() ||
-      !currentUser ||
-      !item?.uid ||
-      !item?.id ||
-      loadingComment
-    ) {
-      return;
-    }
-
     try {
-      setLoadingComment(true);
+      if (!commentText.trim() || !currentUser || loadingComment) {
+        return;
+      }
 
+      setLoadingComment(true);
       const newComment = {
         id: Date.now().toString(),
         commenterId: currentUser.uid,
@@ -108,16 +124,6 @@ function PostCard({ item, fname }: Props) {
         text: commentText.trim(),
         createdAt: new Date().toISOString(),
       };
-      console.log('newComment', newComment);
-      setCommentsState(prev => [
-        ...prev,
-        {
-          ...newComment,
-          createdAt: new Date().toISOString(),
-        },
-      ]);
-
-      setCommentText('');
 
       await firestore()
         .collection('usersData')
@@ -127,10 +133,12 @@ function PostCard({ item, fname }: Props) {
         .update({
           comments: firestore.FieldValue.arrayUnion(newComment),
         });
-    } catch (error) {
-      console.error('Comment Error : ', error);
 
-      setCommentsState(Array.isArray(item?.comments) ? item.comments : []);
+      setCommentText('');
+    } catch (error) {
+      console.log('Comment Error : ', error);
+
+      errorToast('Error', 'Failed to comment');
     } finally {
       setLoadingComment(false);
     }
@@ -157,6 +165,8 @@ function PostCard({ item, fname }: Props) {
             successToast('Success', 'Post deleted successfully');
           } catch (error) {
             console.log('Delete Error : ', error);
+
+            errorToast('Error', 'Failed to delete post');
           }
         },
       },
@@ -173,7 +183,11 @@ function PostCard({ item, fname }: Props) {
       ]}
     >
       <View style={styles.userContainer}>
-        <View style={styles.leftContainer}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.leftContainer}
+          onPress={handleOpenProfile}
+        >
           <Image
             source={{
               uri:
@@ -191,9 +205,9 @@ function PostCard({ item, fname }: Props) {
               },
             ]}
           >
-            {fname || 'Unknown User'}
+            {item?.postCreated?.fname || 'Unknown User'}
           </Text>
-        </View>
+        </TouchableOpacity>
 
         {currentUser?.uid === item?.uid && (
           <Menu>
@@ -214,7 +228,7 @@ function PostCard({ item, fname }: Props) {
               customStyles={{
                 optionsContainer: {
                   width: 120,
-                  borderRadius: 10,
+                  borderRadius: 12,
                 },
               }}
             >
@@ -236,7 +250,7 @@ function PostCard({ item, fname }: Props) {
       <View style={styles.actionContainer}>
         <TouchableOpacity
           style={styles.actionBtn}
-          activeOpacity={0.7}
+          activeOpacity={0.8}
           onPress={handleLike}
           disabled={loadingLike}
         >
@@ -297,6 +311,7 @@ function PostCard({ item, fname }: Props) {
       >
         {item?.title}
       </Text>
+
       <Text
         style={[
           styles.description,
@@ -308,35 +323,32 @@ function PostCard({ item, fname }: Props) {
         {item?.description}
       </Text>
 
-      {Array.isArray(commentsState) &&
-        commentsState.map((commentItem: any, index: number) => (
-          <View
-            key={commentItem?.id || index.toString()}
-            style={styles.commentWrapper}
+      {commentsState.map((commentItem: any) => (
+        <View key={commentItem?.id} style={styles.commentWrapper}>
+          <Text
+            style={[
+              styles.commentUser,
+              {
+                color: theme.text,
+              },
+            ]}
           >
-            <Text
-              style={[
-                styles.commentUser,
-                {
-                  color: theme.text,
-                },
-              ]}
-            >
-              {commentItem?.commenterName || 'User'}
-            </Text>
+            {commentItem?.commenterName}
+          </Text>
 
-            <Text
-              style={[
-                styles.commentText,
-                {
-                  color: theme.text,
-                },
-              ]}
-            >
-              {commentItem?.text}
-            </Text>
-          </View>
-        ))}
+          <Text
+            style={[
+              styles.commentText,
+              {
+                color: theme.text,
+              },
+            ]}
+          >
+            {commentItem?.text}
+          </Text>
+        </View>
+      ))}
+
       <View style={styles.commentContainer}>
         <TextInput
           placeholder={t('comment')}

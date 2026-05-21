@@ -8,6 +8,7 @@ export const icon = {
   calendar: require('./calander.png'),
   title: require('./title.png'),
   desc: require('./desc.png'),
+  back: require('./back.png'),
   //actor
   activeUser: require('./user2.png'),
   inActiveUser: require('./user1.png'),

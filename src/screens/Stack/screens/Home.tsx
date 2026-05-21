@@ -18,7 +18,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  console.log('posts========', posts);
   const getPosts = useCallback(() => {
     try {
       const unsubscribe = firestore()

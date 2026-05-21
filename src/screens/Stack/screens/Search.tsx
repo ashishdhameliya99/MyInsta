@@ -1,56 +1,95 @@
+import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 import InputText from '../../../components/InputText';
 import { icon } from '../../../assets/icons/icon';
 import { useAppTheme } from '../../../hooks/theme/themeContext';
 import { useTranslation } from 'react-i18next';
-import firestore from '@react-native-firebase/firestore';
 import UserCard from '../../../components/UserCard';
 import { styles } from '../styles/SearchStyle';
+import { UserType } from '../../../interface/type';
 
 const EmptyListMessage = () => (
   <View style={styles.emptyContainer}>
-    <Text style={styles.emptyText}>No data</Text>
+    <Text style={styles.emptyText}>No Users Found</Text>
   </View>
 );
+
 export default function Search() {
+  const currentUser = auth().currentUser;
   const [search, setSearch] = useState('');
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
   const { theme } = useAppTheme();
   const { t } = useTranslation();
-  console.log('users==+++', users);
+
   useEffect(() => {
-    const fetchAllUsers = async () => {
-      try {
-        const querySnapshot = await firestore().collection('usersData').get();
-        console.log('querySnapshot', querySnapshot);
-        const usersList = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setUsers(usersList);
-      } catch (error) {
-        console.error('Error fetching users: ', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const unsubscribe = firestore()
+      .collection('usersData')
+      .onSnapshot(
+        snapshot => {
+          const usersList = snapshot.docs
+            .map(doc => ({
+              id: doc.id,
+              ...doc.data(),
+            }))
+            .filter(item => item.id !== currentUser?.uid);
 
-    fetchAllUsers();
-  }, []);
+          setUsers(usersList);
+          setLoading(false);
+        },
+        error => {
+          console.log('Fetch Users Error : ', error);
+          setLoading(false);
+        },
+      );
 
-  const filteredUsers = users.filter(user =>
-    user?.fname?.toLowerCase().includes(search.toLowerCase()),
-  );
+    return () => unsubscribe();
+  }, [currentUser?.uid]);
 
-  console.log('filteredUsers', filteredUsers);
-  console.log('users', users);
+  const filteredUsers = useMemo(() => {
+    if (!search.trim()) {
+      return users;
+    }
 
-  const renderItem = ({ item }: any) => <UserCard user={item} />;
+    return users.filter(user => {
+      const fullName = `${user?.fname || ''} ${
+        user?.lname || ''
+      }`.toLowerCase();
+
+      return fullName.includes(search.toLowerCase());
+    });
+  }, [search, users]);
+
+  const renderItem = ({ item }: { item: UserType }) => {
+    return <UserCard user={item} />;
+  };
+
+  if (loading) {
+    return (
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: theme.background,
+          },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#0095F6" />
+      </View>
+    );
+  }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.background,
+        },
+      ]}
+    >
       <InputText
         placeholder={t('search')}
         value={search}
@@ -58,17 +97,14 @@ export default function Search() {
         rightIconSource={icon.inActiveSearch}
       />
 
-      {loading ? (
-        <ActivityIndicator />
-      ) : (
-        <FlatList
-          data={filteredUsers}
-          keyExtractor={(item: any) => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContainer}
-          ListEmptyComponent={EmptyListMessage}
-        />
-      )}
+      <FlatList
+        data={filteredUsers}
+        renderItem={renderItem}
+        ListEmptyComponent={EmptyListMessage}
+        contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+        initialNumToRender={5}
+      />
     </View>
   );
 }

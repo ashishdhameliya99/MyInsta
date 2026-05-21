@@ -11,7 +11,10 @@ import { routes } from '../../constants/routes';
 import { ParamListBase, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { styles } from './LoginStyle';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 import auth, {
   getAuth,
   GoogleAuthProvider,
@@ -48,25 +51,58 @@ export default function Login() {
       setLoading(false);
     }
   };
+
   GoogleSignin.configure({
     webClientId:
       '520055351712-thklhe3eqbk1oo9hmr0chnb18ehiuhfg.apps.googleusercontent.com',
   });
 
+  // async function onGooglePress() {
+  //   await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+
+  //   const signInResult = await GoogleSignin.signIn();
+  //   console.log('signInResult=========', signInResult);
+  //   let idToken = signInResult.data?.idToken;
+  //   if (!idToken) {
+  //     throw new Error('No ID token found');
+  //   }
+  //   console.log('idToken===========', idToken);
+  //   const googleCredential = GoogleAuthProvider.credential(
+  //     signInResult.data?.idToken,
+  //   );
+  //   console.log('googleCredential', googleCredential);
+  //   return signInWithCredential(getAuth(), googleCredential);
+  // }
+
   async function onGooglePress() {
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    try {
+      await GoogleSignin.hasPlayServices({
+        showPlayServicesUpdateDialog: true,
+      });
+      const signInResult = await GoogleSignin.signIn();
 
-    const signInResult = await GoogleSignin.signIn();
-    let idToken = signInResult.data?.idToken;
-    if (!idToken) {
-      throw new Error('No ID token found');
+      if (signInResult.type === 'success') {
+        const { idToken } = signInResult.data;
+
+        if (!idToken) {
+          throw new Error(
+            'No ID token found. Ensure webClientId is configured.',
+          );
+        }
+        const googleCredential = GoogleAuthProvider.credential(idToken);
+        return signInWithCredential(getAuth(), googleCredential);
+      }
+    } catch (error: any) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        console.log('User cancelled the login flow');
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        console.log('Signin is already in progress');
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        console.log('Play services not available or outdated');
+      } else {
+        console.error('Some other error happened: ', error);
+      }
     }
-
-    const googleCredential = GoogleAuthProvider.credential(
-      signInResult.data?.idToken,
-    );
-    console.log('googleCredential', googleCredential);
-    return signInWithCredential(getAuth(), googleCredential);
   }
 
   return (

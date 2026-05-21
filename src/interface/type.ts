@@ -51,3 +51,21 @@ export type Post = {
   id: string;
   [key: string]: any;
 };
+
+export interface UserType {
+  id: string;
+  uid?: string;
+  fname?: string;
+  lname?: string;
+  email?: string;
+  profilePicture?: string;
+  followers?: object[];
+  following?: object[];
+  requestCome?: object[];
+  requestSend?: object[];
+}
+
+export interface FollowerProps {
+  onClose?: () => void;
+  type?: 'followers' | 'following';
+}

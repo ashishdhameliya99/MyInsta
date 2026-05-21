@@ -29,5 +29,12 @@
   "editProfile": "प्रोफ़ाइल संपादित करें",
   "selectImage": "छवि का चयन करें",
   "search": "उपयोगकर्ता खोजें",
-  "comment": "टिप्पणी जोड़ना"
+  "comment": "टिप्पणी जोड़ना",
+  "receiveRequest": "अनुरोध प्राप्त हुए",
+  "noReceiveRequest": "कोई अनुरोध प्राप्त नहीं हुआ",
+  "sendRequest": "अनुरोध भेजे गए",
+  "noSendRequest": "कोई अनुरोध नहीं भेजा गया",
+  "followerList": "अनुयायियों की सूची",
+  "followingList": "निम्नलिखित सूची",
+  "close": "बंद करो"
 }

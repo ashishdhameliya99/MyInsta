@@ -9,7 +9,7 @@ import fontFamilies from '../assets/fonts/font';
 import { useAppTheme } from '../hooks/theme/themeContext';
 
 interface FollowerCountProps {
-  onPress: (event: GestureResponderEvent) => void;
+  onPress?: (event: GestureResponderEvent) => void;
   number: number;
   text: string;
 }

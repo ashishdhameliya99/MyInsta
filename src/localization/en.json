@@ -28,5 +28,12 @@
   "editProfile": "Edit Profile",
   "selectImage": "Select Image",
   "search": "Search User",
-  "comment": "Add Comment"
+  "comment": "Add Comment",
+  "receiveRequest": "Receive Request",
+  "noReceiveRequest": "No Receive Request",
+  "sendRequest": "Sent Request",
+  "noSendRequest": "No Sent Request",
+  "followerList": "Follower List",
+  "followingList": "Following List",
+  "close": "Close"
 }

@@ -38,6 +38,7 @@ import { errorToast, successToast } from '../../components/Toast';
 import firestore from '@react-native-firebase/firestore';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { RadioButton } from 'react-native-paper';
+
 GoogleSignin.configure({
   webClientId:
     '520055351712-thklhe3eqbk1oo9hmr0chnb18ehiuhfg.apps.googleusercontent.com',
@@ -278,7 +279,7 @@ export default function Register() {
           <Image source={icon.image} style={styles.image} />
 
           <Text style={styles.titleText}>
-            {isEdit ? 'Edit Profile' : t('user_register')}
+            {isEdit ? t('editProfile') : t('user_register')}
           </Text>
 
           <Text style={styles.labelText}>{t('firstName')}</Text>
@@ -390,7 +391,7 @@ export default function Register() {
             <ActivityIndicator size="large" color="#999" />
           ) : (
             <Button
-              title={isEdit ? 'Update Profile' : t('register')}
+              title={isEdit ? t('register') : t('register')}
               onPress={handleSubmit}
             />
           )}
@@ -410,9 +411,7 @@ export default function Register() {
 
               <View style={styles.dividerRow}>
                 <View style={styles.line} />
-
                 <Text style={styles.or}>{t('or')}</Text>
-
                 <View style={styles.line} />
               </View>
 
