@@ -35,5 +35,7 @@
   "noSendRequest": "No Sent Request",
   "followerList": "Follower List",
   "followingList": "Following List",
-  "close": "Close"
+  "close": "Close",
+  "chat": "Chats",
+  "placeholder": "type a message"
 }

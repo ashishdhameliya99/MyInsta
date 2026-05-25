@@ -1,11 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { hp } from '../../../constants/responsiveUI';
+import { hp, rf } from '../../../constants/responsiveUI';
 import fontFamilies from '../../../assets/fonts/font';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: hp(2),
+    paddingTop: hp(20),
   },
 
   loaderContainer: {
@@ -22,7 +22,7 @@ export const styles = StyleSheet.create({
   },
 
   emptyText: {
-    fontSize: 16,
+    fontSize: rf(16),
     fontFamily: fontFamilies.poppins.semiBold,
   },
 });

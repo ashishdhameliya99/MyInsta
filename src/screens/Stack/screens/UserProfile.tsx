@@ -10,22 +10,19 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import firestore from '@react-native-firebase/firestore';
 import { useAppTheme } from '../../../hooks/theme/themeContext';
-import { ParamListBase, useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { styles } from '../styles/ProfleStyle';
 import FollowerCount from '../../../components/FollowerCount';
 import { icon } from '../../../assets/icons/icon';
 import Button from '../../../components/Button';
 import auth from '@react-native-firebase/auth';
 import { errorToast, successToast } from '../../../components/Toast';
+import useAppNavigation from '../../../hooks/navigation/useNavigation';
+import { RouteProps } from '../../../interface/type';
 
-interface Props {
-  route: any;
-}
-export default function UserProfile({ route }: Props) {
+export default function UserProfile({ route }: RouteProps) {
   const { theme } = useAppTheme();
   const currentUser = auth().currentUser;
-  const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
+  const navigation = useAppNavigation();
   const selectedUserId = route?.params?.userId;
   const [profileData, setProfileData] = useState<any>(null);
   const [posts, setPosts] = useState<any[]>([]);
@@ -48,7 +45,7 @@ export default function UserProfile({ route }: Props) {
           }
         },
         error => {
-          console.log('User Snapshot Error: ', error);
+          console.error('User Snapshot Error: ', error);
         },
       );
     return unsubscribe;
@@ -56,7 +53,7 @@ export default function UserProfile({ route }: Props) {
   useEffect(() => {
     checkFollowStatus();
     getUserData();
-  }, []);
+  });
 
   const checkFollowStatus = async () => {
     try {
@@ -92,7 +89,7 @@ export default function UserProfile({ route }: Props) {
         setFollowStatus('Requested');
       }
     } catch (error) {
-      console.log('Check Status Error : ', error);
+      console.error('Check Status Error : ', error);
     }
   };
 
@@ -154,7 +151,7 @@ export default function UserProfile({ route }: Props) {
       setFollowStatus('Requested');
       successToast('Success', 'Follow request sent');
     } catch (error) {
-      console.log('Follow Error : ', error);
+      console.error('Follow Error : ', error);
       errorToast('Error', 'Request failed');
     } finally {
       setLoading(false);
@@ -183,7 +180,7 @@ export default function UserProfile({ route }: Props) {
           }
         },
         error => {
-          console.log('Profile Fetch Error : ', error);
+          console.error('Profile Fetch Error : ', error);
         },
       );
 
@@ -202,7 +199,7 @@ export default function UserProfile({ route }: Props) {
           setLoading(false);
         },
         error => {
-          console.log('Posts Fetch Error : ', error);
+          console.error('Posts Fetch Error : ', error);
           setLoading(false);
         },
       );
@@ -223,6 +220,7 @@ export default function UserProfile({ route }: Props) {
       <View
         style={[
           styles.container,
+          // eslint-disable-next-line react-native/no-inline-styles
           {
             justifyContent: 'center',
             alignItems: 'center',

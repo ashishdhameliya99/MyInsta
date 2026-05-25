@@ -8,8 +8,7 @@ import {
   View,
 } from 'react-native';
 
-import firestore from '@react-native-firebase/firestore';
-import auth from '@react-native-firebase/auth';
+import { addUserPost, getCurrentUser } from '../../../services/firestore';
 import { useTranslation } from 'react-i18next';
 import { icon } from '../../../assets/icons/icon';
 import { useAppTheme } from '../../../hooks/theme/themeContext';
@@ -17,21 +16,21 @@ import InputText from '../../../components/InputText';
 import Button from '../../../components/Button';
 import { imageList } from '../../../helper/global';
 import { errorToast, successToast } from '../../../components/Toast';
-import { ParamListBase, useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
 import { routes } from '../../../constants/routes';
 import { styles } from '../styles/AddPostStyle';
 import { useUserData } from '../../../hooks/userData/useUserData';
+import useAppNavigation from '../../../hooks/navigation/useNavigation';
 
 export default function AddPost() {
   const { theme } = useAppTheme();
   const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
+  const [selectedImage, setSelectedImage] = useState(imageList[0]);
   const [loading, setLoading] = useState(false);
   const userData = useUserData();
-  const [selectedImage, setSelectedImage] = useState(imageList[0]);
-  const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
+  const navigation = useAppNavigation();
 
   const handleSubmit = async () => {
     if (!title.trim() || !desc.trim()) {
@@ -41,31 +40,22 @@ export default function AddPost() {
 
     try {
       setLoading(true);
-      const user = auth().currentUser;
+      const user = getCurrentUser;
       if (!user) {
         errorToast('Error', 'User not found');
         return;
       }
 
-      await firestore()
-        .collection('usersData')
-        .doc(user.uid)
-        .collection('posts')
-        .add({
-          title: title.trim(),
-          description: desc.trim(),
-          imageURL: selectedImage,
-          uid: user.uid,
-          likes: [],
-          comments: [],
-          createdAt: firestore.FieldValue.serverTimestamp(),
-          postCreated: {
-            fname: userData?.fname.trim(),
-            lname: userData?.lname.trim(),
-            email: userData?.email.trim(),
-          },
-        });
+      const postPayload = {
+        userData: userData,
+        postDetails: {
+          title: title,
+          desc: desc,
+          selectedImage: selectedImage,
+        },
+      };
 
+      await addUserPost(postPayload);
       successToast('Success', 'Post added successfully');
       navigation.navigate(routes.home);
 
@@ -73,7 +63,7 @@ export default function AddPost() {
       setDesc('');
       setSelectedImage(imageList[0]);
     } catch (error) {
-      console.log('Add Post Error : ', error);
+      console.error('Add Post Error : ', error);
 
       errorToast('Error', 'Something went wrong');
     } finally {
@@ -127,6 +117,7 @@ export default function AddPost() {
         horizontal
         renderItem={renderImageItem}
         showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.postImages}
       />
 
       <Text

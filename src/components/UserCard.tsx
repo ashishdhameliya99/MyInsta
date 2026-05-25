@@ -6,7 +6,6 @@ import Button from './Button';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import { successToast, errorToast } from './Toast';
-
 interface Props {
   user: any;
 }
@@ -50,12 +49,11 @@ export default function UserCard({ user }: Props) {
       const isRequestSent = requestSendList.some(
         (item: any) => item.uid === user?.id,
       );
-      console.log('isRequestSent', isRequestSent);
       if (isRequestSent) {
         setFollowStatus('Requested');
       }
     } catch (error) {
-      console.log('Check Status Error : ', error);
+      console.error('Check Status Error : ', error);
     }
   };
 
@@ -121,7 +119,7 @@ export default function UserCard({ user }: Props) {
       setFollowStatus('Requested');
       successToast('Success', 'Follow request sent');
     } catch (error) {
-      console.log('Follow Error : ', error);
+      console.error('Follow Error : ', error);
       errorToast('Error', 'Request failed');
     } finally {
       setLoading(false);

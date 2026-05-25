@@ -7,9 +7,6 @@ export const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: wp(20),
   },
-  listContainer: {
-    gap: 20,
-  },
   emptyText: {
     textAlign: 'center',
     marginTop: 20,
@@ -27,5 +24,8 @@ export const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: fontFamilies.poppins.bold,
     marginBottom: 8,
+  },
+  listCard: {
+    gap: 20,
   },
 });

@@ -9,6 +9,7 @@ export const icon = {
   title: require('./title.png'),
   desc: require('./desc.png'),
   back: require('./back.png'),
+  chat: require('./send.png'),
   //actor
   activeUser: require('./user2.png'),
   inActiveUser: require('./user1.png'),

@@ -8,8 +8,6 @@ import LanguagePicker from '../../components/LanguagePicker';
 import InputText from '../../components/InputText';
 import Button from '../../components/Button';
 import { routes } from '../../constants/routes';
-import { ParamListBase, useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { styles } from './LoginStyle';
 import {
   GoogleSignin,
@@ -22,16 +20,16 @@ import auth, {
 } from '@react-native-firebase/auth';
 import { errorToast, successToast } from '../../components/Toast';
 import { ActivityIndicator } from 'react-native-paper';
+import useAppNavigation from '../../hooks/navigation/useNavigation';
 
 export default function Login() {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
+  const navigation = useAppNavigation();
   const handleLogin = async () => {
     if (loading) return;
-    console.log('login user', email, password);
 
     if (!email.trim() || !password.trim()) {
       errorToast('Require field', 'please enter email and password');
@@ -44,8 +42,7 @@ export default function Login() {
       await auth().signInWithEmailAndPassword(email.trim(), password);
       successToast('Success', 'Welcome Back');
       navigation.navigate(routes.mainApp);
-    } catch (e: any) {
-      console.log('Login Error:', e);
+    } catch {
       errorToast('Login failed', 'require all field');
     } finally {
       setLoading(false);
@@ -56,23 +53,6 @@ export default function Login() {
     webClientId:
       '520055351712-thklhe3eqbk1oo9hmr0chnb18ehiuhfg.apps.googleusercontent.com',
   });
-
-  // async function onGooglePress() {
-  //   await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-
-  //   const signInResult = await GoogleSignin.signIn();
-  //   console.log('signInResult=========', signInResult);
-  //   let idToken = signInResult.data?.idToken;
-  //   if (!idToken) {
-  //     throw new Error('No ID token found');
-  //   }
-  //   console.log('idToken===========', idToken);
-  //   const googleCredential = GoogleAuthProvider.credential(
-  //     signInResult.data?.idToken,
-  //   );
-  //   console.log('googleCredential', googleCredential);
-  //   return signInWithCredential(getAuth(), googleCredential);
-  // }
 
   async function onGooglePress() {
     try {
@@ -94,11 +74,11 @@ export default function Login() {
       }
     } catch (error: any) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        console.log('User cancelled the login flow');
+        console.error('User cancelled the login flow');
       } else if (error.code === statusCodes.IN_PROGRESS) {
-        console.log('Signin is already in progress');
+        console.error('Signin is already in progress');
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        console.log('Play services not available or outdated');
+        console.error('Play services not available or outdated');
       } else {
         console.error('Some other error happened: ', error);
       }

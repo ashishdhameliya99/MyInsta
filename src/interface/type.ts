@@ -69,3 +69,30 @@ export interface FollowerProps {
   onClose?: () => void;
   type?: 'followers' | 'following';
 }
+
+export interface RequestUser {
+  uid: string;
+  userName: string;
+  profilePicture?: string;
+}
+export interface RouteProps {
+  route: any;
+}
+
+export interface PostCreatedData {
+  fname: string;
+  lname: string;
+  email: string;
+  profilePicture: string;
+}
+
+export interface PostData {
+  title: string;
+  description: string;
+  imageURL: string;
+  uid: string;
+  likes: string[];
+  comments: string[];
+  createdAt: any;
+  postCreated: PostCreatedData;
+}

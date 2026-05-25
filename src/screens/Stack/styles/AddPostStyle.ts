@@ -4,14 +4,9 @@ import fontFamilies from '../../../assets/fonts/font';
 
 export const styles = StyleSheet.create({
   container: {
+    flex: 5,
     paddingHorizontal: 20,
     paddingTop: hp(5),
-  },
-  icon: {
-    width: 100,
-    height: 100,
-    alignSelf: 'center',
-    resizeMode: 'contain',
   },
   labelText: {
     fontSize: 16,
@@ -26,11 +21,14 @@ export const styles = StyleSheet.create({
     padding: 3,
   },
   postImage: {
-    width: 120,
-    height: 120,
+    width: hp(120),
+    height: hp(120),
     borderRadius: 12,
   },
   loader: {
     marginTop: 20,
+  },
+  postImages: {
+    height: hp(135),
   },
 });

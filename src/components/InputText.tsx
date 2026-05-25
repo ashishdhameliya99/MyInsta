@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: color.white,
     borderRadius: 12,
-    padding: 12,
+    padding: wp(5),
     marginVertical: 8,
     borderWidth: 1,
     borderColor: color.borderColor,

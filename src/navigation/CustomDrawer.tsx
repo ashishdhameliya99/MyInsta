@@ -21,19 +21,19 @@ import LanguagePicker from '../components/LanguagePicker';
 import { hp, rf } from '../constants/responsiveUI';
 import fontFamilies from '../assets/fonts/font';
 import { errorToast, successToast } from '../components/Toast';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ParamListBase, useNavigation } from '@react-navigation/native';
+
 import { routes } from '../constants/routes';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '../hooks/theme/themeContext';
 import { icon } from '../assets/icons/icon';
+import useAppNavigation from '../hooks/navigation/useNavigation';
 
 export default function CustomDrawer(props: DrawerContentComponentProps) {
   const [userData, setUserData] = useState<any>(null);
   const [activeMenuIndex, setActiveMenuIndex] = useState(null);
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
-  const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
+  const navigation = useAppNavigation();
   const { dark, toggleTheme, theme } = useAppTheme();
 
   const getUserData = useCallback(async () => {
@@ -50,7 +50,7 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
           setUserData(documentSnapshot.data());
         }
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
     }
   }, []);
@@ -77,12 +77,10 @@ export default function CustomDrawer(props: DrawerContentComponentProps) {
 
             try {
               await auth().signOut();
-
               successToast('success', 'User logout successfully');
-
               navigation.navigate(routes.login);
             } catch (error) {
-              console.log('LOGOUT ERROR', error);
+              console.error('LOGOUT ERROR', error);
 
               errorToast('error', 'User logout failed');
             } finally {

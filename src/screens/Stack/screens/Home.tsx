@@ -42,7 +42,7 @@ export default function Home() {
             setRefreshing(false);
           },
           error => {
-            console.log('Fetch Error : ', error);
+            console.error('Fetch Error : ', error);
             setLoading(false);
             setRefreshing(false);
           },
@@ -50,7 +50,7 @@ export default function Home() {
 
       return unsubscribe;
     } catch (error) {
-      console.log('Home Error : ', error);
+      console.error('Home Error : ', error);
       setLoading(false);
       setRefreshing(false);
     }

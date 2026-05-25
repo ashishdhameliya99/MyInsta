@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Text, View } from 'react-native';
+import { FlatList, Text, View } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import InputText from '../../../components/InputText';
@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import UserCard from '../../../components/UserCard';
 import { styles } from '../styles/SearchStyle';
 import { UserType } from '../../../interface/type';
+import UserCardSkeleton from '../../../components/UserCardSkeleton';
 
 const EmptyListMessage = () => (
   <View style={styles.emptyContainer}>
@@ -18,9 +19,11 @@ const EmptyListMessage = () => (
 
 export default function Search() {
   const currentUser = auth().currentUser;
+
   const [search, setSearch] = useState('');
   const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
+
   const { theme } = useAppTheme();
   const { t } = useTranslation();
 
@@ -36,11 +39,13 @@ export default function Search() {
             }))
             .filter(item => item.id !== currentUser?.uid);
 
-          setUsers(usersList);
-          setLoading(false);
+          setTimeout(() => {
+            setUsers(usersList);
+            setLoading(false);
+          }, 3000);
         },
         error => {
-          console.log('Fetch Users Error : ', error);
+          console.error('Fetch Users Error : ', error);
           setLoading(false);
         },
       );
@@ -66,21 +71,6 @@ export default function Search() {
     return <UserCard user={item} />;
   };
 
-  if (loading) {
-    return (
-      <View
-        style={[
-          styles.container,
-          {
-            backgroundColor: theme.background,
-          },
-        ]}
-      >
-        <ActivityIndicator size="large" color="#0095F6" />
-      </View>
-    );
-  }
-
   return (
     <View
       style={[
@@ -97,14 +87,21 @@ export default function Search() {
         rightIconSource={icon.inActiveSearch}
       />
 
-      <FlatList
-        data={filteredUsers}
-        renderItem={renderItem}
-        ListEmptyComponent={EmptyListMessage}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-        initialNumToRender={5}
-      />
+      {loading ? (
+        Array.from({ length: 5 }).map((_, index) => (
+          <UserCardSkeleton key={index} />
+        ))
+      ) : (
+        <FlatList
+          data={filteredUsers}
+          renderItem={renderItem}
+          keyExtractor={item => item.id.toString()}
+          ListEmptyComponent={EmptyListMessage}
+          contentContainerStyle={styles.listCard}
+          showsVerticalScrollIndicator={false}
+          initialNumToRender={5}
+        />
+      )}
     </View>
   );
 }

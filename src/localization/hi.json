@@ -36,5 +36,7 @@
   "noSendRequest": "कोई अनुरोध नहीं भेजा गया",
   "followerList": "अनुयायियों की सूची",
   "followingList": "निम्नलिखित सूची",
-  "close": "बंद करो"
+  "close": "बंद करो",
+  "chat": "बातचीत",
+  "placeholder": "संदेश टाइप करें"
 }

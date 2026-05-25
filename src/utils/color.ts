@@ -15,12 +15,14 @@ export const color = {
 
 export const lightTheme = {
   background: '#ffffff',
+  CardBackground: '#ffffff',
   text: '#000000',
   modal: '#FAF9F6',
 };
 
 export const darkTheme = {
   background: '#000000',
+  CardBackground: '#c3c3c3ff',
   text: '#ffffff',
   modal: '#ffffff',
 };

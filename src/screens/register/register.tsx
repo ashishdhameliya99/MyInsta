@@ -16,14 +16,8 @@ import InputText from '../../components/InputText';
 import DatePicker from 'react-native-date-picker';
 import Button from '../../components/Button';
 import { routes } from '../../constants/routes';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useRoute } from '@react-navigation/native';
 
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   GestureHandlerRootView,
   ScrollView,
@@ -38,6 +32,7 @@ import { errorToast, successToast } from '../../components/Toast';
 import firestore from '@react-native-firebase/firestore';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { RadioButton } from 'react-native-paper';
+import useAppNavigation from '../../hooks/navigation/useNavigation';
 
 GoogleSignin.configure({
   webClientId:
@@ -49,7 +44,7 @@ export default function Register() {
   const route = useRoute<RouteProp<any>>();
   const isEdit = route?.params?.isEdit || false;
   const editUserData = route?.params?.userData;
-  const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
+  const navigation = useAppNavigation();
 
   const [firstName, setFirstName] = useState(editUserData?.fname || '');
   const [lastName, setLastName] = useState(editUserData?.lname || '');
@@ -137,7 +132,7 @@ export default function Register() {
 
                 navigation.goBack();
               } catch (error) {
-                console.log('Update Error : ', error);
+                console.error('Update Error : ', error);
 
                 errorToast('Error', 'Update failed');
               } finally {
@@ -198,7 +193,7 @@ export default function Register() {
 
       navigation.navigate(routes.login);
     } catch (error: any) {
-      console.log('Signup Error:', error);
+      console.error('Signup Error:', error);
 
       if (error.code === 'auth/email-already-in-use') {
         errorToast('Email Exists', 'This email is already registered');
@@ -258,7 +253,7 @@ export default function Register() {
 
       successToast('Success', 'Google login successful');
     } catch (error: any) {
-      console.log('Google Login Error:', error);
+      console.error('Google Login Error:', error);
 
       errorToast(
         'Google Login Failed',

@@ -21,7 +21,7 @@ export const useUserData = () => {
           }
         },
         error => {
-          console.log('User Snapshot Error: ', error);
+          console.error('User Snapshot Error: ', error);
         },
       );
     return unsubscribe;

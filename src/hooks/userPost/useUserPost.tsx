@@ -26,7 +26,7 @@ export const useUserPosts = () => {
 
       setUserPosts(posts);
     } catch (error) {
-      console.log('Error fetching user posts:', error);
+      console.error('Error fetching user posts:', error);
     } finally {
       setLoading(false);
     }

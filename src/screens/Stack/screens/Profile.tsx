@@ -14,20 +14,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import {
   BottomSheetModal,
   BottomSheetModalProvider,
   BottomSheetView,
 } from '@gorhom/bottom-sheet';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAppTheme } from '../../../hooks/theme/themeContext';
 import { useTranslation } from 'react-i18next';
 import FollowerCount from '../../../components/FollowerCount';
@@ -39,6 +32,8 @@ import { wp } from '../../../constants/responsiveUI';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Follower from './Follower';
 import Button from '../../../components/Button';
+import useAppNavigation from '../../../hooks/navigation/useNavigation';
+import { db } from '../../../services/firestore';
 
 const EmptyListMessage = () => (
   <View style={styles.emptyContainer}>
@@ -49,7 +44,7 @@ const EmptyListMessage = () => (
 export default function Profile() {
   const { theme } = useAppTheme();
   const { t } = useTranslation();
-  const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
+  const navigation = useAppNavigation();
   const route = useRoute<RouteProp<any>>();
   const selectedUserId = route?.params?.userId;
   const currentUser = auth().currentUser;
@@ -57,7 +52,6 @@ export default function Profile() {
     'followers',
   );
   const isOwnProfile = !selectedUserId || selectedUserId === currentUser?.uid;
-  console.log('isOwnProfile', isOwnProfile);
   const [profileData, setProfileData] = useState<any>(null);
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +80,7 @@ export default function Profile() {
           return;
         }
 
-        unsubscribeUser = firestore()
+        unsubscribeUser = db
           .collection('usersData')
           .doc(userId)
           .onSnapshot(snapshot => {
@@ -98,7 +92,7 @@ export default function Profile() {
             }
           });
 
-        unsubscribePosts = firestore()
+        unsubscribePosts = db
           .collection('usersData')
           .doc(userId)
           .collection('posts')
@@ -111,7 +105,7 @@ export default function Profile() {
             setLoading(false);
           });
       } catch (error) {
-        console.log('Profile Fetch Error : ', error);
+        console.error('Profile Fetch Error : ', error);
         setLoading(false);
       }
     };
@@ -136,14 +130,14 @@ export default function Profile() {
       }
 
       setProfileLoading(true);
-      await firestore().collection('usersData').doc(currentUser.uid).update({
+      await db.collection('usersData').doc(currentUser.uid).update({
         profilePicture: imageURL,
       });
 
       setModalVisible(false);
       successToast('Success', 'Profile picture updated');
     } catch (error) {
-      console.log('Profile Picture Error : ', error);
+      console.error('Profile Picture Error : ', error);
 
       errorToast('Error', 'Failed to update profile picture');
     } finally {
