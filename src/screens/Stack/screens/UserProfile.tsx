@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -9,108 +9,86 @@ import {
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 import { useAppTheme } from '../../../hooks/theme/themeContext';
 import { styles } from '../styles/ProfleStyle';
 import FollowerCount from '../../../components/FollowerCount';
-import { icon } from '../../../assets/icons/icon';
 import Button from '../../../components/Button';
-import auth from '@react-native-firebase/auth';
+import { icon } from '../../../assets/icons/icon';
 import { errorToast, successToast } from '../../../components/Toast';
 import useAppNavigation from '../../../hooks/navigation/useNavigation';
 import { RouteProps } from '../../../interface/type';
+import { profileImages } from '../../../helper/global';
 
 export default function UserProfile({ route }: RouteProps) {
   const { theme } = useAppTheme();
   const currentUser = auth().currentUser;
   const navigation = useAppNavigation();
-  const selectedUserId = route?.params?.userId;
   const [profileData, setProfileData] = useState<any>(null);
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [checkingFollow, setCheckingFollow] = useState(true);
   const [followStatus, setFollowStatus] = useState('Follow');
   const post = route?.params?.post;
 
-  const getUserData = useCallback(() => {
-    if (!post) return;
-
-    const unsubscribe = firestore()
-      .collection('usersData')
-      .doc(post.uid)
-      .onSnapshot(
-        documentSnapshot => {
-          if (documentSnapshot && documentSnapshot.exists()) {
-            setProfileData(documentSnapshot.data());
-          } else {
-            setProfileData(null);
-          }
-        },
-        error => {
-          console.error('User Snapshot Error: ', error);
-        },
-      );
-    return unsubscribe;
-  }, [post]);
   useEffect(() => {
-    checkFollowStatus();
-    getUserData();
-  });
+    const checkFollowStatus = async () => {
+      try {
+        if (!currentUser || !post?.uid) {
+          return;
+        }
+        setCheckingFollow(true);
+        const currentUserDoc = await firestore()
+          .collection('usersData')
+          .doc(currentUser?.uid)
+          .get();
+        const currentUserData = currentUserDoc?.data();
+        // following list
+        const followingList = currentUserData?.following || [];
+        const isFollowing = followingList.some(
+          (item: any) => item?.uid === post?.uid,
+        );
+        if (isFollowing) {
+          setFollowStatus('Following');
+          return;
+        }
+        // request send list
+        const requestSendList = currentUserData?.requestSend || [];
+        const isRequestSent = requestSendList.some(
+          (item: any) => item?.uid === post?.uid,
+        );
 
-  const checkFollowStatus = async () => {
-    try {
-      if (!currentUser) {
-        return;
+        if (isRequestSent) {
+          setFollowStatus('Requested');
+        } else {
+          setFollowStatus('Follow');
+        }
+      } catch (error) {
+        console.error('Check Status Error : ', error);
+      } finally {
+        setCheckingFollow(false);
       }
-
-      const currentUserDoc = await firestore()
-        .collection('usersData')
-        .doc(currentUser.uid)
-        .get();
-
-      const currentUserData = currentUserDoc.data();
-
-      // already following
-      const followingList = currentUserData?.following || [];
-
-      const isFollowing = followingList.some(
-        (item: any) => item.uid === post?.id,
-      );
-      if (isFollowing) {
-        setFollowStatus('Following');
-        return;
-      }
-
-      // request already sent
-      const requestSendList = currentUserData?.requestSend || [];
-
-      const isRequestSent = requestSendList.some(
-        (item: any) => item.uid === post?.id,
-      );
-      if (isRequestSent) {
-        setFollowStatus('Requested');
-      }
-    } catch (error) {
-      console.error('Check Status Error : ', error);
+    };
+    if (post?.uid && currentUser?.uid) {
+      checkFollowStatus();
     }
-  };
+  }, [currentUser?.uid, post?.uid]);
 
   const handleFollow = async () => {
     try {
-      if (!currentUser) {
+      if (!currentUser || checkingFollow || loading) {
         return;
       }
-
-      // already requested
       if (followStatus === 'Requested') {
-        errorToast('Already Sent', 'Already request sent, wait to accept');
+        errorToast('Already Sent', 'Already request sent');
+
         return;
       }
-
-      // already following
       if (followStatus === 'Following') {
         errorToast('Following', 'You already follow this user');
+
         return;
       }
-
       setLoading(true);
 
       const currentUserDoc = await firestore()
@@ -130,24 +108,24 @@ export default function UserProfile({ route }: RouteProps) {
         userName: currentUserData?.fname || '',
         profilePicture: currentUserData?.profilePicture || '',
       };
+
       const batch = firestore().batch();
-      // current user
+
       const currentUserRef = firestore()
         .collection('usersData')
-        .doc(currentUser.uid);
+        .doc(currentUser?.uid);
 
       batch.update(currentUserRef, {
         requestSend: firestore.FieldValue.arrayUnion(requestSentData),
       });
 
-      // target user
       const targetUserRef = firestore().collection('usersData').doc(post?.uid);
 
       batch.update(targetUserRef, {
         requestCome: firestore.FieldValue.arrayUnion(requestComeData),
       });
-      await batch.commit();
 
+      await batch.commit();
       setFollowStatus('Requested');
       successToast('Success', 'Follow request sent');
     } catch (error) {
@@ -159,17 +137,14 @@ export default function UserProfile({ route }: RouteProps) {
   };
 
   useEffect(() => {
-    if (!selectedUserId) {
+    if (!post?.uid) {
       setLoading(false);
+
       return;
     }
-
-    let unsubscribeUser: any;
-    let unsubscribePosts: any;
-
-    unsubscribeUser = firestore()
+    const unsubscribeProfile = firestore()
       .collection('usersData')
-      .doc(selectedUserId)
+      .doc(post.uid)
       .onSnapshot(
         snapshot => {
           if (snapshot.exists()) {
@@ -179,14 +154,13 @@ export default function UserProfile({ route }: RouteProps) {
             });
           }
         },
-        error => {
-          console.error('Profile Fetch Error : ', error);
-        },
+
+        error => console.error('Profile Fetch Error : ', error),
       );
 
-    unsubscribePosts = firestore()
+    const unsubscribePosts = firestore()
       .collection('usersData')
-      .doc(selectedUserId)
+      .doc(post.uid)
       .collection('posts')
       .onSnapshot(
         snapshot => {
@@ -198,6 +172,7 @@ export default function UserProfile({ route }: RouteProps) {
           setPosts(tempPosts);
           setLoading(false);
         },
+
         error => {
           console.error('Posts Fetch Error : ', error);
           setLoading(false);
@@ -205,17 +180,12 @@ export default function UserProfile({ route }: RouteProps) {
       );
 
     return () => {
-      if (unsubscribeUser) {
-        unsubscribeUser();
-      }
-
-      if (unsubscribePosts) {
-        unsubscribePosts();
-      }
+      unsubscribeProfile();
+      unsubscribePosts();
     };
-  }, [selectedUserId]);
+  }, [post?.uid]);
 
-  if (loading) {
+  if (loading && !profileData) {
     return (
       <View
         style={[
@@ -232,7 +202,6 @@ export default function UserProfile({ route }: RouteProps) {
       </View>
     );
   }
-
   return (
     <SafeAreaView
       style={[
@@ -250,9 +219,7 @@ export default function UserProfile({ route }: RouteProps) {
         <View>
           <Image
             source={{
-              uri:
-                profileData?.profilePicture ||
-                'https://images.unsplash.com/photo-1494976388531-d1058494cdd8',
+              uri: profileData?.profilePicture || profileImages[0],
             }}
             style={styles.image}
           />
@@ -283,9 +250,13 @@ export default function UserProfile({ route }: RouteProps) {
           />
         </View>
       </View>
+
       <Button
-        title={loading ? 'Loading...' : followStatus}
+        title={
+          checkingFollow ? 'Checking...' : loading ? 'Loading...' : followStatus
+        }
         onPress={handleFollow}
+        disabled={checkingFollow || loading}
       />
     </SafeAreaView>
   );

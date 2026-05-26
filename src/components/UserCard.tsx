@@ -34,10 +34,10 @@ export default function UserCard({ user }: Props) {
 
       // already following
       const followingList = currentUserData?.following || [];
-
       const isFollowing = followingList.some(
-        (item: any) => item.uid === user?.id,
+        (item: any) => item?.uid === user?.id,
       );
+
       if (isFollowing) {
         setFollowStatus('Following');
         return;
@@ -47,7 +47,7 @@ export default function UserCard({ user }: Props) {
       const requestSendList = currentUserData?.requestSend || [];
 
       const isRequestSent = requestSendList.some(
-        (item: any) => item.uid === user?.id,
+        (item: any) => item?.uid === user?.id,
       );
       if (isRequestSent) {
         setFollowStatus('Requested');

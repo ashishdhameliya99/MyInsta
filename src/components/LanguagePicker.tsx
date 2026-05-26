@@ -41,22 +41,6 @@ const LanguagePicker = () => {
     }
   };
 
-  // useEffect(() => {
-  //   const loadLanguage = async () => {
-  //     try {
-  //       const savedLanguage = await AsyncStorage.getItem('userLanguage');
-  //       if (savedLanguage) {
-  //         setValue(savedLanguage);
-  //         i18n.changeLanguage(savedLanguage);
-  //       }
-  //     } catch (error) {
-  //       console.error('Error loading language', error);
-  //     }
-  //   };
-
-  //   loadLanguage();
-  // }, [i18n]);
-
   return (
     <View style={[styles.container]}>
       <Dropdown

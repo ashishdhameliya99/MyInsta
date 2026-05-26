@@ -17,7 +17,8 @@ export const lightTheme = {
   background: '#ffffff',
   CardBackground: '#ffffff',
   text: '#000000',
-  modal: '#FAF9F6',
+  modal: '#ffffff',
+  chatText: '#000000ff',
 };
 
 export const darkTheme = {
@@ -25,4 +26,5 @@ export const darkTheme = {
   CardBackground: '#c3c3c3ff',
   text: '#ffffff',
   modal: '#ffffff',
+  chatText: '#000000ff',
 };

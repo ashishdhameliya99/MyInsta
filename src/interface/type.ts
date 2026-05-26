@@ -85,7 +85,9 @@ export interface PostCreatedData {
   email: string;
   profilePicture: string;
 }
-
+export interface PostProps {
+  item: any;
+}
 export interface PostData {
   title: string;
   description: string;
@@ -96,3 +98,8 @@ export interface PostData {
   createdAt: any;
   postCreated: PostCreatedData;
 }
+export type RouteParams = {
+  params: {
+    receiverData: any;
+  };
+};

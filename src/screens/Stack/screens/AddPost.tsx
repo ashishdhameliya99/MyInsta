@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
+
 import {
   ActivityIndicator,
   FlatList,
   Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 
 import { addUserPost, getCurrentUser } from '../../../services/firestore';
+
 import { useTranslation } from 'react-i18next';
 import { icon } from '../../../assets/icons/icon';
 import { useAppTheme } from '../../../hooks/theme/themeContext';
@@ -16,10 +21,10 @@ import InputText from '../../../components/InputText';
 import Button from '../../../components/Button';
 import { imageList } from '../../../helper/global';
 import { errorToast, successToast } from '../../../components/Toast';
-
 import { routes } from '../../../constants/routes';
 import { styles } from '../styles/AddPostStyle';
 import { useUserData } from '../../../hooks/userData/useUserData';
+
 import useAppNavigation from '../../../hooks/navigation/useNavigation';
 
 export default function AddPost() {
@@ -49,19 +54,19 @@ export default function AddPost() {
       const postPayload = {
         userData: userData,
         postDetails: {
-          title: title,
-          desc: desc,
+          title: title.trim(),
+          desc: desc.trim(),
           selectedImage: selectedImage,
         },
       };
 
       await addUserPost(postPayload);
       successToast('Success', 'Post added successfully');
-      navigation.navigate(routes.home);
-
       setTitle('');
       setDesc('');
       setSelectedImage(imageList[0]);
+
+      navigation.navigate(routes.home);
     } catch (error) {
       console.error('Add Post Error : ', error);
 
@@ -79,88 +84,114 @@ export default function AddPost() {
         activeOpacity={0.8}
         style={[
           styles.imageWrapper,
+
           // eslint-disable-next-line react-native/no-inline-styles
           {
-            borderColor: isSelected ? '#000' : 'transparent',
+            borderColor: isSelected ? '#0095F6' : 'transparent',
           },
         ]}
         onPress={() => setSelectedImage(item)}
       >
-        <Image source={{ uri: item }} style={styles.postImage} />
+        <Image
+          source={{
+            uri: item,
+          }}
+          style={styles.postImage}
+        />
       </TouchableOpacity>
     );
   };
 
   return (
-    <View
+    <KeyboardAvoidingView
       style={[
-        styles.container,
+        styles.safeArea,
         {
           backgroundColor: theme.background,
         },
       ]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <Text
-        style={[
-          styles.labelText,
-          {
-            color: theme.text,
-          },
-        ]}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        {t('selectImage')}
-      </Text>
+        <View
+          style={[
+            styles.container,
+            {
+              backgroundColor: theme.background,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.labelText,
+              {
+                color: theme.text,
+              },
+            ]}
+          >
+            {t('selectImage')}
+          </Text>
 
-      <FlatList
-        data={imageList}
-        keyExtractor={(item, index) => index.toString()}
-        horizontal
-        renderItem={renderImageItem}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.postImages}
-      />
+          <FlatList
+            data={imageList}
+            keyExtractor={index => index.toString()}
+            horizontal
+            renderItem={renderImageItem}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.postImages}
+          />
 
-      <Text
-        style={[
-          styles.labelText,
-          {
-            color: theme.text,
-          },
-        ]}
-      >
-        {t('title')}
-      </Text>
+          <Text
+            style={[
+              styles.labelText,
+              {
+                color: theme.text,
+              },
+            ]}
+          >
+            {t('title')}
+          </Text>
 
-      <InputText
-        placeholder={t('title')}
-        value={title}
-        onChange={setTitle}
-        leftIconSource={icon.title}
-      />
+          <InputText
+            placeholder={t('title')}
+            value={title}
+            onChange={setTitle}
+            leftIconSource={icon.title}
+          />
 
-      <Text
-        style={[
-          styles.labelText,
-          {
-            color: theme.text,
-          },
-        ]}
-      >
-        {t('description')}
-      </Text>
+          <Text
+            style={[
+              styles.labelText,
+              {
+                color: theme.text,
+              },
+            ]}
+          >
+            {t('description')}
+          </Text>
 
-      <InputText
-        placeholder={t('description')}
-        value={desc}
-        onChange={setDesc}
-        leftIconSource={icon.desc}
-      />
-
-      {loading ? (
-        <ActivityIndicator size="large" color="#999" style={styles.loader} />
-      ) : (
-        <Button title={t('submit')} onPress={handleSubmit} />
-      )}
-    </View>
+          <InputText
+            placeholder={t('description')}
+            value={desc}
+            onChange={setDesc}
+            leftIconSource={icon.desc}
+          />
+          <View>
+            {loading ? (
+              <ActivityIndicator
+                size="large"
+                color="#0095F6"
+                style={[styles.loader, { backgroundColor: theme.background }]}
+              />
+            ) : (
+              <Button title={t('submit')} onPress={handleSubmit} />
+            )}
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

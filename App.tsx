@@ -5,6 +5,7 @@ import Toast from 'react-native-toast-message';
 
 import { ThemeProvider } from './src/hooks/theme/themeContext';
 import { MenuProvider } from 'react-native-popup-menu';
+import useUserStatus from './src/hooks/userStatus/useStatus';
 function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -13,6 +14,9 @@ function App() {
 
     return () => clearTimeout(timer);
   }, []);
+
+  useUserStatus();
+
   return (
     <MenuProvider>
       <ThemeProvider>

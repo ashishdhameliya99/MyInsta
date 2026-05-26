@@ -1,17 +1,17 @@
 import { StyleSheet } from 'react-native';
-import { hp } from '../../../constants/responsiveUI';
+import { hp, wp } from '../../../constants/responsiveUI';
 import fontFamilies from '../../../assets/fonts/font';
 
 export const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
-    flex: 5,
-    paddingHorizontal: 20,
-    paddingTop: hp(5),
+    paddingHorizontal: wp(20),
   },
   labelText: {
     fontSize: 16,
-    marginTop: 15,
-    marginBottom: 10,
+    marginTop: hp(10),
     fontFamily: fontFamilies.poppins.medium,
   },
   imageWrapper: {
@@ -22,7 +22,7 @@ export const styles = StyleSheet.create({
   },
   postImage: {
     width: hp(120),
-    height: hp(120),
+    height: hp(123),
     borderRadius: 12,
   },
   loader: {

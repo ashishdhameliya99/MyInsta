@@ -150,4 +150,8 @@ export const styles = StyleSheet.create({
     height: wp(25),
     resizeMode: 'contain',
   },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+  },
 });

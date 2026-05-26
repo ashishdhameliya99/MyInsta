@@ -21,7 +21,7 @@ export default function useUserStatus() {
           { merge: true },
         );
       } catch (error) {
-        console.log('Online Error : ', error);
+        console.error('Online Error : ', error);
       }
     };
 
@@ -35,7 +35,7 @@ export default function useUserStatus() {
           { merge: true },
         );
       } catch (error) {
-        console.log('Offline Error : ', error);
+        console.error('Offline Error : ', error);
       }
     };
 

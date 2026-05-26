@@ -14,14 +14,12 @@ interface Props {
 function ChatHeader({ user, onBack }: Props) {
   const { theme } = useAppTheme();
   const [isOnline, setIsOnline] = useState(true);
-  console.log('user', user);
   useEffect(() => {
     const unsubscribe = db
       .collection('usersData')
       .doc(user?.uid)
       .onSnapshot(doc => {
         const data = doc.data();
-        console.log('data', data);
         setIsOnline(data?.isOnline || false);
       });
     return unsubscribe;

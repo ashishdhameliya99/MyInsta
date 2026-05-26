@@ -30,7 +30,7 @@ import useAppNavigation from '../hooks/navigation/useNavigation';
 
 export default function CustomDrawer(props: DrawerContentComponentProps) {
   const [userData, setUserData] = useState<any>(null);
-  const [activeMenuIndex, setActiveMenuIndex] = useState(null);
+  const [activeMenuIndex, setActiveMenuIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
   const navigation = useAppNavigation();
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   activeMenuItem: {
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#4b4b4bff',
   },
   activeMenuText: {
     color: '#007AFF',

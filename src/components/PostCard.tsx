@@ -72,15 +72,10 @@ function PostCard({ item }: Props) {
       .onSnapshot(documentSnapshot => {
         if (documentSnapshot.exists()) {
           const data = documentSnapshot.data();
-
           const likes = Array.isArray(data?.likes) ? data.likes : [];
-
           const comments = Array.isArray(data?.comments) ? data.comments : [];
-
           setIsLiked(likes.includes(currentUser.uid));
-
           setLikesCount(likes.length);
-
           setCommentsState(comments);
         }
       });
@@ -346,7 +341,6 @@ function PostCard({ item }: Props) {
         {item?.description}
       </Text>
 
-      {/* Comments */}
       {showComments && (
         <>
           {commentsState.length > 0 ? (

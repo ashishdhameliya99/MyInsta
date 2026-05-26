@@ -81,7 +81,7 @@ export default function useChatMessages({ receiverData }: Props) {
             { merge: true },
           );
       } catch (error) {
-        console.log('Send Error : ', error);
+        console.error('Send Error : ', error);
       }
     },
     [chatId, currentUser, receiverData],

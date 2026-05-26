@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   StyleSheet,
@@ -27,18 +28,33 @@ export default function Chat() {
   const userData = useUserData();
   const [search, setSearch] = useState('');
   const { t } = useTranslation();
+  const [loading, setLoading] = useState(false);
 
   const filteredFollowing = useMemo(() => {
-    const followingList = userData?.following || [];
+    const followingList = [
+      ...(userData?.followers || []),
+      ...(userData?.following || []),
+    ];
+
     if (!search.trim()) {
       return followingList;
     }
+
     return followingList.filter((user: any) => {
-      const fullName = `${user?.userName || ''}
-      }`.toLowerCase();
+      const fullName = `${user?.userName || ''}`.toLowerCase();
       return fullName.includes(search.toLowerCase());
     });
-  }, [search, userData?.following]);
+  }, [search, userData?.following, userData?.followers]);
+
+  useEffect(() => {
+    setLoading(true);
+
+    const timeoutId = setTimeout(() => {
+      setLoading(false);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [search, userData?.following, userData?.followers]);
 
   const handleUserPress = (item: any) => {
     navigation.navigate(routes?.userChat, {
@@ -94,7 +110,7 @@ export default function Chat() {
         style={[
           styles.headerContainer,
           {
-            borderBottomColor: theme.background || '#ddd',
+            borderBottomColor: theme.background,
           },
         ]}
       >
@@ -139,16 +155,20 @@ export default function Chat() {
         // eslint-disable-next-line react/no-unstable-nested-components
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            <Text
-              style={[
-                styles.emptyText,
-                {
-                  color: theme.text,
-                },
-              ]}
-            >
-              No Users
-            </Text>
+            {loading ? (
+              <ActivityIndicator />
+            ) : (
+              <Text
+                style={[
+                  styles.emptyText,
+                  {
+                    color: theme.text,
+                  },
+                ]}
+              >
+                No Users
+              </Text>
+            )}
           </View>
         )}
       />

@@ -191,7 +191,13 @@ export default function Profile() {
   };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#0095F6" />;
+    return (
+      <ActivityIndicator
+        size="large"
+        color="#0095F6"
+        style={[styles.loader, { backgroundColor: theme.background }]}
+      />
+    );
   }
 
   return (

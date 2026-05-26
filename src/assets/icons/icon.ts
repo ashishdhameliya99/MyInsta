@@ -36,4 +36,5 @@ export const icon = {
   inActiveLike: require('./unSelected.png'),
   //comment
   comment: require('./comment.png'),
+  sendMsg: require('./sendMsg.png'),
 };
